@@ -403,7 +403,10 @@ function home(arrived = null, newly = []) {
   };
   edges();
   tabs.addEventListener('scroll', edges, { passive: true });
-  scrollBox(tabs); // in the rail, where the tabs are a column that scrolls up and down, the edges show more above or below
+  // In the rail the tabs are a column that scrolls up and down (styles.css): there the edges show more above or below.
+  // A phone's row is left as it is: it scrolls sideways and has its own fades above.
+  // ponytail: decided as home is drawn, so a window dragged from narrow to wide gets its fades at the next redraw.
+  if (getComputedStyle(tabs).flexDirection === 'column') scrollBox(tabs);
   for (const b of app.querySelectorAll('[data-path]')) {
     b.addEventListener('click', () => { showHabit(b.dataset.path); home(); focusOn(`[data-path="${b.dataset.path}"]`); });
   }

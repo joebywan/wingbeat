@@ -3120,8 +3120,9 @@ test('the field guide opens from the garden and from home, and shows every kind'
 // Wingbeat is made for an upright phone. Turned on its side, a lesson or routine waits under one line asking for it
 // upright, and is exactly where it was when it is; home stays as it is, and a tablet or a desktop window never sees it.
 // "On its side" is read from the screen (fit.js SIDEWAYS). Playwright's screen is the page and its orientation a desktop's,
-// so `device` stands in for the phone's: screen.width/height and screen.orientation.type, turned by `turnTo`, which also
-// sets the page to the size it has then (Chrome on a Pixel 6: 412x915 upright, 866x308 on its side).
+// so `device` stands in for the phone's: screen.width/height, screen.orientation's type and angle, and its touch points
+// (Playwright's hasTouch gives Firefox none), turned by `turnTo`, which also sets the page to the size it has then (Chrome
+// on a Pixel 6: 412x915 upright, 866x308 on its side).
 const device = (page, w = 412, h = 915) => page.addInitScript(([w0, h0]) => {
   let s = { w: w0, h: h0 };
   const type = () => (s.w > s.h ? 'landscape-primary' : 'portrait-primary');
@@ -3129,6 +3130,7 @@ const device = (page, w = 412, h = 915) => page.addInitScript(([w0, h0]) => {
   Object.defineProperty(Screen.prototype, 'height', { configurable: true, get: () => s.h });
   Object.defineProperty(ScreenOrientation.prototype, 'type', { configurable: true, get: type });
   Object.defineProperty(ScreenOrientation.prototype, 'angle', { configurable: true, get: () => (s.w > s.h ? 90 : 0) });
+  Object.defineProperty(Navigator.prototype, 'maxTouchPoints', { configurable: true, get: () => 5 });
   window.__turn = (w, h) => { s = { w, h }; screen.orientation.dispatchEvent(new Event('change')); };
 }, [w, h]);
 // An iPhone's screen.width and screen.height never turn; only the orientation does (type and angle). A desktop browser
@@ -3138,6 +3140,7 @@ const fixedScreen = (page, w, h, type, angle) => page.addInitScript(([w, h, type
   Object.defineProperty(Screen.prototype, 'height', { configurable: true, get: () => h });
   Object.defineProperty(ScreenOrientation.prototype, 'type', { configurable: true, get: () => type });
   Object.defineProperty(ScreenOrientation.prototype, 'angle', { configurable: true, get: () => angle });
+  Object.defineProperty(Navigator.prototype, 'maxTouchPoints', { configurable: true, get: () => 5 });
 }, [w, h, type, angle]);
 const turnTo = async (page, [w, h], viewport) => {
   await page.setViewportSize(viewport);

@@ -11,18 +11,18 @@ import { LINES } from './cast/lines.js';
  * A phone on its side. Wingbeat is made for an upright phone, so a lesson or routine asks to be turned back (app.js sets
  * `data-sideways` on <html>, styles.css shows `.upright` over `main.play`) and a timed routine holds where it is. Read
  * from the screen, never the page: the keyboard shrinks the page (`interactive-widget=resizes-content`, the app's
- * adjustResize) to wider than tall on a short phone, and that is not a phone on its side. So: a touch screen, turned
- * to landscape and away from the way the device is held naturally (an angle of 90 or 270), whose short side is a phone's
- * (under 500 CSS px; a tablet's is 600 or more). Where the browser has no
+ * adjustResize) to wider than tall on a short phone, and that is not a phone on its side. So: a touch screen
+ * (`navigator.maxTouchPoints`, never the pointer media queries: Firefox calls a touch screen that also takes a stylus
+ * "fine", any-pointer too), turned to landscape and away from the way the device is held naturally (an angle of 90 or
+ * 270), whose short side is a phone's (under 500 CSS px; a tablet's is 600 or more). Where the browser has no
  * `screen.orientation` it is never sideways. `matches`, and a 'change' event, like a MediaQueryList.
  */
 export const SIDEWAYS = (() => {
   const turned = globalThis.screen?.orientation;
-  if (!turned || typeof matchMedia !== 'function') return null;
-  const coarse = matchMedia('(pointer: coarse)');
+  if (!turned) return null;
   // A landscape type at an angle of 0 is a desktop browser emulating touch (it reports one for any page) or a tablet held
   // wide, never a phone turned. An iPhone's screen.width and screen.height never turn, so the angle is what says it.
-  const now = () => coarse.matches && turned.type.startsWith('landscape') && turned.angle % 180 !== 0 && Math.min(screen.width, screen.height) < 500;
+  const now = () => navigator.maxTouchPoints > 0 && turned.type.startsWith('landscape') && turned.angle % 180 !== 0 && Math.min(screen.width, screen.height) < 500;
   const side = new EventTarget();
   let was = now();
   const check = () => { if (now() !== was) { was = !was; side.dispatchEvent(new Event('change')); } };
