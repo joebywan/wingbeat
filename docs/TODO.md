@@ -330,8 +330,14 @@ block below; the fixes that came out of them are in docs/WINGBEAT.md under "Foun
   meeting come before "today's learning is done": its learner had never done a Maths lesson, so Ada rightly said her first line; the scenario's
   learner has now done one. And a run that died of an error nothing awaited left its emulator running with no lock (one sat in the first slot
   for 1 h 45 min, so every later run went to the next); the runner shuts it down then too.
-  **Left:** `text` at the phone's font size 1.3 and 2.0: an answered chess board runs under the verdict by about 40px on a page 324px wide (medium;
-  the sweep measured the same in Chromium at 324x612, for 312 puzzles), and at 2.0 (216px, past what the app promises) most of the board is under it. `japanese`:
+  **The answered board under the verdict: done** (#212). At the phone's font size 1.3 (a page 324px wide) an answered chess board ran under the
+  verdict by about 40px. Firefox for Android only: Chromium fits every chess item from 320px wide (the sweep's note that it measured the same
+  there did not hold up). While anything is wider than the page Firefox widens `innerWidth` and `innerHeight`, and `fitBoard` measures a board at
+  its column's width a moment before its drawing is redrawn, so the board was sized for a taller screen (a 324 x 612 page read 351 x 662) and a
+  board being played crept wider than the page. The drawing is now held to its board's width. `large-text.spec.js` models that viewport in both
+  browsers, and `text` passes in Firefox at 1.3. At 2.0 (216px, past what the app promises) the board keeps its smallest size and scrolls clear
+  of the verdict, which is all `text` asks under 320px.
+  **Left:** `text` at 2.0: in two runs of three the end of Japanese's answered explanation was 1px out of reach (low). `japanese`:
   the 🔊 button's content measures a few px wider than its box in Firefox, so "nothing overflows" fails there, though it is drawn whole (low).
   `moving`: once, a value changed while Fennel was between squares (`var-3-free`; seen once, cause not found; low). `words` has not been played
   again in Firefox since its seed was fixed. What `away-bare` checks (a routine paused, quiet and letting the screen sleep after Home) is not

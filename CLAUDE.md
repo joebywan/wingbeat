@@ -99,8 +99,10 @@ or minimum font size in a desktop browser is `test/e2e/large-text.spec.js`. `tes
   (the Meet screen's button looked at as drawn, 12 visits; `MEET_REPS=1` is the full hunt, 102), `browser` (the address bar against
   the fixed bars, pull to refresh, the back button, a box that scrolls), `persist` and `persist-logged` (the storage prompt, each on its own fresh Firefox; every other scenario's seed marks it as already
   asked, so it is in no one's way), `stall` (home reloaded until
-  the screen stops changing) and `text` (the large-text tour at the phone's own font size). **What Firefox does differently:** it
+  the screen stops changing) and `text` (the large-text tour at the phone's own font size; under 320px wide a part has only to scroll
+  clear of the verdict). **What Firefox does differently:** it
   asks the person before it keeps a site's storage, it follows the phone's font size by zooming the whole page (216px wide at 2.0),
+  while anything is wider than the page it widens its viewport, `innerWidth` and `innerHeight` with it (a 324 x 612 page read 351 x 662),
   and it has no `navigator.vibrate`. What a bridged browser cannot do prints one line there and is not counted: haptics (`checkBuzz`),
   `attach()`, `page.route`, Chrome's Default zoom and its devtools socket (`app`, `away-bare-app`, `sync`, `zoom`, `away-bare`). Every page
   served carries the bridge; its locators take `hasText`, `>>`, `nth=`, `:visible` and `.and`, and any other option throws. In a plain run
@@ -180,6 +182,10 @@ or minimum font size in a desktop browser is `test/e2e/large-text.spec.js`. `tes
   **Once answered, being in view comes first:** if the board could not sit whole above the verdict even at its answered size (larger
   text keeps tall room for her words), her kept room goes, then `tall`, then `tighter`, and only then the board shrinks
   (`test/e2e/large-text.spec.js` plays three items right and wrong at 125% and 200%).
+  **A board's drawing never makes the page wider** (`.board > div { max-width: 100% }`): `fitBoard` measures a board at its column's width
+  before cm-chessboard redraws, and Firefox for Android widens `innerWidth`/`innerHeight` while anything is wider than the page, so a wider
+  drawing had the answered board sized for a taller screen. Never a clip on the board: Firefox for Android then drew no squares.
+  `large-text.spec.js` models that viewport at 324 x 612.
 - **Promotion:** `withPromotion()` in exercise.js is the one picker (cm-chessboard's dialog, on every `board()`), used by puzzles, move items, stars, Mate and Play Rosa; Scramble has no pawns of yours. `tryMove()` returns `'piece'` for the right square with a piece the line doesn't need, explained and free; any mate still counts.
 - **Stars** teach pieces by play: move your piece onto every gold star within a move budget; the
   other side never moves, and kings are optional (chess.js `skipValidation`). A piece's first
