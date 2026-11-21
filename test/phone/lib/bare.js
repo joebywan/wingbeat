@@ -2,14 +2,19 @@
 // stop backgrounding), so a page it drives never hears visibilitychange when the phone is put down. Here the page is set up
 // through the runner, then Chrome or the app is restarted plain, started by hand over the devtools socket, the connection
 // dropped, the phone put down, and only then read again. `away` runs a routine through Home and the lock screen this way.
+// A bridged browser (Firefox) is already bare: nothing is attached to its page, which asks the runner for work over HTTP,
+// so it is neither restarted nor connected to; its page is driven by real taps and read through the bridge, and letting
+// go is only not asking it anything while the phone is down.
 import { awake, putDown, screenOff, sleep, within } from './device.js';
 
 const CHROME = 'com.android.chrome';
 const PORT = 19333;
 const SOCKET = 'wingbeat_bare_devtools';
+const bridged = (h) => !!h.browser && h.browser !== 'chrome';
 
 /** Restarts `pkg` plain (no runner switches) at `url`. */
-export async function restart({ adb, declinePrompts }, pkg, url) {
+export async function restart({ adb, declinePrompts, browser }, pkg, url) {
+  if (bridged({ browser })) return;
   adb('shell', 'am', 'force-stop', pkg);
   adb('shell', 'rm', '-f', '/data/local/tmp/chrome-command-line');
   // Chrome opens a devtools socket only when told to; nothing else of the runner's switches (backgrounding, throttling) is given.
@@ -24,7 +29,9 @@ export async function restart({ adb, declinePrompts }, pkg, url) {
  * Connects to the page by its devtools socket with a bare websocket (Playwright cannot attach to a WebView this way), and
  * gives the few calls the checks use: evaluate(fn, arg), click(/name/), reload(). `close()` lets go of the page again.
  */
-export async function connect({ adb }, pkg, url) {
+export async function connect(h, pkg, url) {
+  const { adb } = h;
+  if (bridged(h)) return { page: { url: () => h.page.url(), evaluate: (fn, arg) => h.page.evaluate(fn, arg), reload: () => h.page.reload(), click: (re) => h.touch(h.btn(re).first()) }, close: () => {} };
   const socket = pkg === CHROME ? SOCKET : adb('shell', 'cat', '/proc/net/unix').match(/@(webview_devtools_remote_\d+)/)?.[1];
   if (!socket) throw new Error(`no devtools socket for ${pkg}`);
   adb('forward', `tcp:${PORT}`, `localabstract:${socket}`);
@@ -117,6 +124,7 @@ export async function bareTour(h, pkg, dir) {
   const secs = Number(process.env.AWAY_SECS ?? 20);
   await seed({ done: { 'maths:ten-0': true } });
   await page.evaluate(() => { localStorage.setItem('wingbeat.bell', 'on'); localStorage.setItem('wingbeat.rain', 'on'); });
+  if (bridged(h)) await page.clock.resume(); // the runner's page keeps time on page.clock: here it runs in real time, as a plain page does
   const url = page.url();
   const store = await page.evaluate(() => Object.fromEntries(Object.entries(localStorage)));
   const { mkdirSync } = await import('node:fs');

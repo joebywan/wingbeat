@@ -19,12 +19,14 @@ const trace = (page) => page.evaluate(() => {
   const walker = world?.querySelector('.walker');
   if (!walker) return;
   const frame = window.__frame ?? requestAnimationFrame;
-  const first = world.querySelector('.cell')?.getBoundingClientRect().width || 1;
+  const cell = world.querySelector('.cell');
   let last = '';
   (function loop() {
-    const w = walker.getBoundingClientRect(), g = world.getBoundingClientRect();
+    // The square's size is read in the same frame as Fennel: the map gives way (smaller squares) when the verdict comes up,
+    // in the frame his last value shows, and a size measured once read that frame as a place between squares.
+    const w = walker.getBoundingClientRect(), g = world.getBoundingClientRect(), side = cell?.getBoundingClientRect().width || 1;
     const s = {
-      t: Math.round(performance.now()), x: +((w.x - g.x) / first).toFixed(2), y: +((w.y - g.y) / first).toFixed(2),
+      t: Math.round(performance.now()), x: +((w.x - g.x) / side).toFixed(2), y: +((w.y - g.y) / side).toFixed(2), side: +side.toFixed(1),
       trail: world.querySelectorAll('.trail').length, picked: world.querySelectorAll('.picked').length,
       vars: [...document.querySelectorAll('.vars .var')].map((v) => v.textContent.trim().replace(/\s+/g, '=')).join(' '),
       face: walker.firstElementChild?.getAttribute('class') ?? '',
