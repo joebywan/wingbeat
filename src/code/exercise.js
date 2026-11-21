@@ -1,5 +1,5 @@
 import { builder } from '../builder.js';
-import { boxTo, fitter, scrollBox, topOf, wholeRows } from '../fit.js';
+import { boxTo, fitsBubble, fitter, scrollBox, topOf, wholeRows } from '../fit.js';
 import { flourish, hold, play } from '../feel.js';
 import { RUN_ENDS } from '../cast/lines.js';
 import { esc } from '../html.js';
@@ -71,7 +71,8 @@ export function mount(el, item, ctx) {
   const foot = el.querySelector('.tiles');
   const outEl = el.querySelector('.code-out');
   // As tall as what it should print, so a run moves nothing; something longer scrolls inside it.
-  if (outEl) outEl.style.height = `${el.querySelector('.code-goal code').offsetHeight}px`;
+  // A run that printed more lines than that is marked so (more-below, a fade), never a box that looks the same as the goal.
+  if (outEl) { outEl.style.height = `${el.querySelector('.code-goal code').offsetHeight}px`; scrollBox(outEl); }
   const world = el.querySelector('.grid-world');
   const walker = g ? walkerOn(world, g) : null;
   const givenEl = el.querySelector('.code-given');
@@ -142,8 +143,10 @@ export function mount(el, item, ctx) {
     if (!result.right) {
       // As in Coding: their own code stays, with what it printed (or Fennel saying what went wrong, or which faulty
       // version got through), for the hold or until a tap; then the way that works takes its place, the reason first in the verdict.
+      // He says the reason only if it fits his bubble as it stands, so nothing under it moves; else he keeps the prompt.
       if (result.walk?.bumped) walker.cellAt(result.walk.bumped)?.classList.add('hit');
-      say(result.said ?? result.why, 'wrong');
+      const line = result.said ?? result.why;
+      say(fitsBubble(document.querySelector('.play .bubble'), [line]).length ? line : item.prompt, 'wrong');
       await (held = hold());
       if (gone) return;
       programEl.innerHTML = `<pre class="code shown" tabindex="0" aria-label="One way that works">${esc(pretty(wayOf(item)))}</pre>`;

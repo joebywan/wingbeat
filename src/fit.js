@@ -90,6 +90,22 @@ export function giveRoom(over, steps) {
   return false;
 }
 
+/**
+ * Of `lines`, those the coach's `bubble` can say as it stands: no taller than it is now, so nothing under it ever moves.
+ * Measured in a hidden copy (same classes, same width). With no bubble on the page, all of them.
+ */
+export function fitsBubble(bubble, lines) {
+  if (!bubble) return lines;
+  const copy = bubble.cloneNode(false);
+  copy.removeAttribute('id');
+  copy.removeAttribute('aria-live');
+  copy.style.cssText += `;position:absolute;visibility:hidden;width:${bubble.offsetWidth}px`;
+  bubble.after(copy);
+  const fits = lines.filter((t) => { copy.textContent = t; return copy.offsetHeight <= bubble.offsetHeight; });
+  copy.remove();
+  return fits;
+}
+
 /** Scrolls `box` (never the page) so `el` in it shows: smoothly, unless motion is reduced. */
 export function keepInView(box, el) {
   if (!el || box.scrollHeight <= box.clientHeight) return;
