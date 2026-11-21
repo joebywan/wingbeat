@@ -23,19 +23,23 @@ export default async (h) => {
   const back = async () => { sh('monkey', '-p', h.pkg, '-c', 'android.intent.category.LAUNCHER', '1'); await sleep(2500); };
 
   // The call: rings, is answered (or declined), talks a while, ends.
-  const call = async (label, how, during = async () => {}) => {
+  // `snap` (a routine's) also reads the count and the pause at each moment, which is the table in the log: ringing, answered
+  // (twice, three seconds apart, so a count that moves shows), and after hanging up.
+  const call = async (label, how, snap = async () => ({})) => {
     adb('emu', 'gsm', 'call', NUMBER); await sleep(3500);
     const ringing = callState();
-    const rang = { front: front(), hidden: await hidden(), sound: playing() };
+    const rang = { front: front(), hidden: await hidden(), sound: playing(), ...await snap() };
     await shot(`${label}-ringing`);
-    say(`${label}: ringing (call state ${ringing}), in front: ${rang.front}, page hidden: ${rang.hidden}, sound: ${JSON.stringify(rang.sound)}`);
+    say(`${label}: ringing (call state ${ringing}), in front: ${rang.front}, page hidden: ${rang.hidden}, count ${rang.count}, paused ${rang.paused}, sound: ${JSON.stringify(rang.sound)}`);
     if (how === 'answer') {
       sh('input', 'keyevent', 'KEYCODE_CALL'); await sleep(3000);
-      const talk = { state: callState(), front: front(), hidden: await hidden(), sound: playing() };
+      const talk = { state: callState(), front: front(), hidden: await hidden(), sound: playing(), ...await snap() };
       await shot(`${label}-in-call`);
       say(`${label}: in the call (state ${talk.state}), in front: ${talk.front}, page hidden: ${talk.hidden}, sound: ${JSON.stringify(talk.sound)}`);
-      await during(talk);
-      await sleep(4000);
+      await sleep(3000);
+      const later = { hidden: await hidden(), sound: playing(), ...await snap() };
+      say(`${label}: still in the call 3 s on: page hidden ${later.hidden}, count ${later.count} (was ${talk.count}), paused ${later.paused}, sound ${JSON.stringify(later.sound)}`);
+      await sleep(1000);
       adb('emu', 'gsm', 'cancel', NUMBER); await sleep(2500);
     } else {
       sh('input', 'keyevent', 'KEYCODE_ENDCALL'); await sleep(2500);
@@ -93,7 +97,7 @@ export default async (h) => {
   };
   for (const [label, how] of [['calm-answered', 'answer'], ['calm-declined', 'decline']]) {
     const s0 = await running(label);
-    const { rang } = await call(label, how, async (talk) => { await sleep(0); });
+    const { rang } = await call(label, how, async () => ({ count: await count(), paused: await pause() }));
     const [c1, p1, hid] = [await count(), await pause(), await hidden()];
     const snd = playing();
     say(`${label}: afterwards count ${c1} (was ${s0.count}), paused ${p1}, page hidden ${hid}, sound ${JSON.stringify(snd)}`);

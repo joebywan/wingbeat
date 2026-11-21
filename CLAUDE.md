@@ -103,7 +103,7 @@ or minimum font size in a desktop browser is `test/e2e/large-text.spec.js`. `tes
   clear of the verdict). **What Firefox does differently:** it
   asks the person before it keeps a site's storage, it follows the phone's font size by zooming the whole page (216px wide at 2.0),
   while anything is wider than the page it widens its viewport, `innerWidth` and `innerHeight` with it (a 324 x 612 page read 351 x 662),
-  and it has no `navigator.vibrate`. What a bridged browser cannot do prints one line there and is not counted: haptics (`checkBuzz`),
+  it calls the emulator's touch screen (which also takes a stylus) a fine pointer, so nothing reads `(pointer: coarse)`, and it has no `navigator.vibrate`. What a bridged browser cannot do prints one line there and is not counted: haptics (`checkBuzz`),
   `attach()`, `page.route`, Chrome's Default zoom and its devtools socket (`app`, `away-bare-app`, `sync`, `zoom`, `away-bare`). Every page
   served carries the bridge; its locators take `hasText`, `>>`, `nth=`, `:visible` and `.and`, and any other option throws. In a plain run
   `persist` comes before `persist-logged`, which then says storage is already kept and checks that nothing is asked.
@@ -375,11 +375,13 @@ or minimum font size in a desktop browser is `test/e2e/large-text.spec.js`. `tes
   it (`hush()` in feel.js, the one rule for when sound rests: the page hidden, or a held routine), so rain never comes back
   before the routine does.
 - **Made for an upright phone** (decision 28). `SIDEWAYS` in `src/fit.js` says a phone is on its side, read from the screen
-  (`screen.orientation`, a short side under 500px, a coarse pointer), never from the page: the keyboard shrinks the page
+  (touch points, `screen.orientation` a landscape type at an angle of 90 or 270, a short side under 500px), never from the page: the keyboard shrinks the page
   (`interactive-widget=resizes-content`, the app's `adjustResize`) to wider than tall on a 360-wide phone. app.js sets
   `html[data-sideways]`; styles.css puts `.upright` (one line, `UPRIGHT`) over `main.play` only, a timed routine and
-  Scramble's clock hold, and turned back everything is where it was. Null where `screen.orientation` is missing, and an
-  iPhone's screen size does not turn, so there it never shows. MainActivity locks the app upright below 600dp.
+  Scramble's clock hold, and turned back everything is where it was. Null where `screen.orientation` is missing. The angle,
+  not a turned screen size (an iPhone's never turns; a desktop browser emulating touch and a tablet held wide report a landscape type at angle 0), and
+  `navigator.maxTouchPoints`, never `(pointer: coarse)` (Firefox for Android calls a touch screen that also takes a stylus fine, `any-pointer` too). The
+  iPhone is modelled in `flows.spec.js`, not played. MainActivity locks the app upright below 600dp.
 - **Calm is not therapy.** `test/guardrails.test.js` bars health claims, diagnosis words and urgency
   in Calm's text, and checks the Lifeline help line (13 11 14, as plain text) is on the first Calm
   lesson and after "Not really".
@@ -461,7 +463,8 @@ or minimum font size in a desktop browser is `test/e2e/large-text.spec.js`. `tes
 - Home lists each habit once: one row of tabs (icon, name, streak coloured by `light()`) that
   scrolls inside itself, with ⋯ (Settings) pinned at its right end. Its edge fades are gradients laid over the row
   (`.tabs-row::before`/`::after`), never a mask. Sound is a switch on the ⋯ screen. On a wide screen the tabs are a column
-  in the rail and scroll in their own box (`.rail .paths`), which ends above ⋯; `misfits()` (test/phone/lib/fits.js) fails a tab under it.
+  in the rail and scroll in their own box (`.rail .paths`, a `scrollBox()` only while it is a column: a phone's row keeps its own side fades and is never
+  one), which ends above ⋯; `misfits()` (test/phone/lib/fits.js) fails a tab under it.
 - `src/fitting.js` — pure: fitting the person from the on-device log (docs/TODO.md "Fitting the
   person"). `usualHours`/`reminderHour` (the log's `hour`s; nothing under five sessions);
   `shouldRemind` thins reminders that are only ever cleared (every other day after 3, every third
