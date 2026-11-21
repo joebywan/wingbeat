@@ -2338,7 +2338,12 @@ test('on a short landscape screen the tabs scroll inside the rail, so + Habit is
   const box = await rail.boundingBox();
   expect(box.y + box.height).toBeLessThanOrEqual(600);
   const add = page.getByRole('button', { name: 'Add a habit' });
-  await rail.locator('.paths').evaluate((el) => { el.scrollTop = el.scrollHeight; }); // the tabs scroll, not the page
+  const tabs = rail.locator('.paths');
+  await expect(tabs).toHaveClass(/more-below/); // the edges say there are more tabs past the bottom, not yet above
+  await expect(tabs).not.toHaveClass(/more-above/);
+  await tabs.evaluate((el) => { el.scrollTop = el.scrollHeight; }); // the tabs scroll, not the page
+  await expect(tabs).toHaveClass(/more-above/);
+  await expect(tabs).not.toHaveClass(/more-below/);
   await expect(add).toBeInViewport();
   expect(await page.evaluate(() => scrollY)).toBe(0);
 });
@@ -3102,16 +3107,28 @@ test('the field guide opens from the garden and from home, and shows every kind'
 // Wingbeat is made for an upright phone. Turned on its side, a lesson or routine waits under one line asking for it
 // upright, and is exactly where it was when it is; home stays as it is, and a tablet or a desktop window never sees it.
 // "On its side" is read from the screen (fit.js SIDEWAYS). Playwright's screen is the page and its orientation a desktop's,
-// so `device` stands in for the phone's: screen.width/height and screen.orientation.type, turned by `turnTo`, which also
-// sets the page to the size it has then (Chrome on a Pixel 6: 412x915 upright, 866x308 on its side).
+// so `device` stands in for the phone's: screen.width/height, screen.orientation's type and angle, and its touch points
+// (Playwright's hasTouch gives Firefox none), turned by `turnTo`, which also sets the page to the size it has then (Chrome
+// on a Pixel 6: 412x915 upright, 866x308 on its side).
 const device = (page, w = 412, h = 915) => page.addInitScript(([w0, h0]) => {
   let s = { w: w0, h: h0 };
   const type = () => (s.w > s.h ? 'landscape-primary' : 'portrait-primary');
   Object.defineProperty(Screen.prototype, 'width', { configurable: true, get: () => s.w });
   Object.defineProperty(Screen.prototype, 'height', { configurable: true, get: () => s.h });
   Object.defineProperty(ScreenOrientation.prototype, 'type', { configurable: true, get: type });
+  Object.defineProperty(ScreenOrientation.prototype, 'angle', { configurable: true, get: () => (s.w > s.h ? 90 : 0) });
+  Object.defineProperty(Navigator.prototype, 'maxTouchPoints', { configurable: true, get: () => 5 });
   window.__turn = (w, h) => { s = { w, h }; screen.orientation.dispatchEvent(new Event('change')); };
 }, [w, h]);
+// An iPhone's screen.width and screen.height never turn; only the orientation does (type and angle). A desktop browser
+// emulating touch reports a landscape type at angle 0 for any page, whatever its screen.
+const fixedScreen = (page, w, h, type, angle) => page.addInitScript(([w, h, type, angle]) => {
+  Object.defineProperty(Screen.prototype, 'width', { configurable: true, get: () => w });
+  Object.defineProperty(Screen.prototype, 'height', { configurable: true, get: () => h });
+  Object.defineProperty(ScreenOrientation.prototype, 'type', { configurable: true, get: () => type });
+  Object.defineProperty(ScreenOrientation.prototype, 'angle', { configurable: true, get: () => angle });
+  Object.defineProperty(Navigator.prototype, 'maxTouchPoints', { configurable: true, get: () => 5 });
+}, [w, h, type, angle]);
 const turnTo = async (page, [w, h], viewport) => {
   await page.setViewportSize(viewport);
   await page.evaluate(([w, h]) => window.__turn(w, h), [w, h]);
@@ -3182,6 +3199,24 @@ test.describe('a phone on its side', () => {
     await expect(page.locator('#said')).toHaveText(RUN_ENDS.way);
     await continueButton(page).click();
     await expect(page.locator('.foot.show')).toHaveCount(0);
+  });
+
+  test('an iPhone on its side (its screen size never turns) waits under the line too', async ({ page }) => {
+    await fixedScreen(page, 390, 844, 'landscape-primary', 90);
+    await page.setViewportSize({ width: 750, height: 300 });
+    await firstVisit(page);
+    await page.getByRole('button', { name: /^Continue · / }).click();
+    await expect(upright(page)).toBeVisible();
+    await expect(page.locator('.stage')).toBeHidden();
+  });
+
+  test('a desktop browser emulating touch (landscape type at angle 0) is never on its side', async ({ page }) => {
+    await fixedScreen(page, 360, 640, 'landscape-primary', 0);
+    await page.setViewportSize({ width: 866, height: 308 });
+    await firstVisit(page);
+    await page.getByRole('button', { name: /^Continue · / }).click();
+    await expect(page.locator('.stage')).toBeVisible();
+    await expect(upright(page)).toBeHidden();
   });
 
   test('a tablet on its side is left alone', async ({ page }) => {

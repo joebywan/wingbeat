@@ -13,7 +13,7 @@ import { worn } from './cast/skins.js';
 import { BOX, butterfly, butterflyToday } from './cast/butterfly.js';
 import { CHECKPOINT, ECHOES, WARM_UPS, checkpoint, comeBack, dropEchoes, echoes, fresh, warmUps } from './repeat.js';
 import { GOES, easier, flying, helpFor, misses, noteAnswer, struggling, warmedLast } from './adapt.js';
-import { SIDEWAYS, fitsBubble, giveRoom, giveWay, longestVerdict } from './fit.js';
+import { SIDEWAYS, fitsBubble, giveRoom, giveWay, longestVerdict, scrollBox } from './fit.js';
 import { CALM_SOUNDS, DARES_LABEL, SOUND_LABEL, QUIET_STREAK_LABEL, MOVE_ON, REMINDER_WORDS, KEEP_WORDS, SOUTH_LABEL, feelsFor, INTRO_WORDS, UPRIGHT, LOG_WORDS, CHOOSE_WORDS, SKIN_WORDS, WING_WORDS, STREAK_LABEL, accuracyLabel, finished, HEADLINES, LINES, line, paceLabel, rightAnswer, say, verdicts, VOICES } from './cast/lines.js';
 import { buzz, calmPref, chime, cue, flourish, move, petals, play, pref, setPref, soundOn, voice } from './feel.js';
 import { southern } from './garden/season.js';
@@ -403,6 +403,10 @@ function home(arrived = null, newly = []) {
   };
   edges();
   tabs.addEventListener('scroll', edges, { passive: true });
+  // In the rail the tabs are a column that scrolls up and down (styles.css): there the edges show more above or below.
+  // A phone's row is left as it is: it scrolls sideways and has its own fades above.
+  // ponytail: decided as home is drawn, so a window dragged from narrow to wide gets its fades at the next redraw.
+  if (getComputedStyle(tabs).flexDirection === 'column') scrollBox(tabs);
   for (const b of app.querySelectorAll('[data-path]')) {
     b.addEventListener('click', () => { showHabit(b.dataset.path); home(); focusOn(`[data-path="${b.dataset.path}"]`); });
   }
