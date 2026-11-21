@@ -107,7 +107,7 @@ export default async (h) => {
         const { tr, shots } = await watched(item, () => answerCoding(h2, item));
         const a = analyse(tr);
         if (!a.run) return;
-        report[id].push({ item: item.id, type: item.type, ...a, frames: shots.length, span: shots.at(-1)?.at });
+        report[id].push({ item: item.id, type: item.type, ...a, frames: shots.length, span: shots.at(-1)?.at, raw: tr });
         console.log(`  ${item.id} (${item.type}): ${shots.length} frames over ${shots.at(-1)?.at ?? 0} ms; visits ${a.visits.length}; trail ends at ${a.endTrail}; jumps ${a.jumps.length}; values between squares ${a.offSquare.length}; drawing shrank ${a.shrank}`);
         for (const v of a.valueLog.slice(0, 12)) console.log(`      ${v}`);
         check(`${item.id}: Fennel never jumps more than a square between frames`, !a.jumps.length, a.jumps.slice(0, 2).join('; '));
