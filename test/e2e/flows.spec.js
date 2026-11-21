@@ -2351,7 +2351,12 @@ test('on a short landscape screen the tabs scroll inside the rail, so + Habit is
   const box = await rail.boundingBox();
   expect(box.y + box.height).toBeLessThanOrEqual(600);
   const add = page.getByRole('button', { name: 'Add a habit' });
-  await rail.locator('.paths').evaluate((el) => { el.scrollTop = el.scrollHeight; }); // the tabs scroll, not the page
+  const tabs = rail.locator('.paths');
+  await expect(tabs).toHaveClass(/more-below/); // the edges say there are more tabs past the bottom, not yet above
+  await expect(tabs).not.toHaveClass(/more-above/);
+  await tabs.evaluate((el) => { el.scrollTop = el.scrollHeight; }); // the tabs scroll, not the page
+  await expect(tabs).toHaveClass(/more-above/);
+  await expect(tabs).not.toHaveClass(/more-below/);
   await expect(add).toBeInViewport();
   expect(await page.evaluate(() => scrollY)).toBe(0);
 });
