@@ -154,6 +154,8 @@ async function codeMiss(h, course, lessonId, id, decoy) {
       check(`${course}: their own code stays, with Fennel's line (${await page.locator('#said').textContent()})`, (await page.locator('#said').textContent()) === said
         && (await page.locator('.code-program').textContent()).includes(decoy) && await page.locator('.program.shown').count() === 0 && await page.locator('.foot.show').count() === 0);
       seen.push(await tops());
+      const out = await page.evaluate(() => { const o = document.querySelector('.code-out'); return o && { more: o.classList.contains('more-below'), over: o.textContent.split('\n').length > document.querySelector('.code-goal code').textContent.split('\n').length }; });
+      if (out) check(`${course}: "It printed" marks lines it cannot show only when there are some (${JSON.stringify(out)})`, out.more === out.over);
     }
     await run(600);
   }
