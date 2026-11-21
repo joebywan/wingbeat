@@ -301,10 +301,10 @@ for (const viewport of [{ width: 412, height: 786 }, { width: 360, height: 640 }
   test.use({ viewport, font: 32 });
   for (const id of ['moves-0-rook', '4Gdlg', 'check-0-yes']) test(`a chess board (${id}) answered gets her empty room before it is made small`, async ({ page }) => {
     test.setTimeout(60000);
-    // Known, and not her empty room: a true/false's claim stays in her bubble (three lines here), so with everything given
-    // way the board at its smallest (ANSWERED) still runs about 54px under a verdict that is half this screen.
-    test.fail(id === 'check-0-yes' && viewport.width === 360, 'a true/false at 200% on 360x640 is under the verdict (docs/TODO.md)');
-    expect(await boardAbove(page, id, true)).toEqual([]);
+    // Not her empty room: a true/false's claim stays in her bubble (three lines here), so on the smaller screen, with everything
+    // given way, the board at its smallest (ANSWERED) still ends about 54px under a verdict of half the screen. There it has
+    // only to scroll clear of the verdict, as on any screen too short for it.
+    expect(await boardAbove(page, id, true, id === 'check-0-yes' && viewport.width === 360)).toEqual([]);
   });
 });
 
@@ -330,9 +330,10 @@ test.describe('Firefox for Android at font size 1.3 (324 x 612)', () => {
 
 /**
  * Mounts chess item `id` and answers it right, then wrong, under the longest headline: what is wrong with where the board ends,
- * and with `snug`, a board made smaller than its own size under a bubble taller than her words.
+ * and with `snug`, a board made smaller than its own size under a bubble taller than her words. With `reach` (a screen too
+ * short for it) a board that ends under the verdict has only to scroll clear of it (`reachable`, fits.js).
  */
-async function boardAbove(page, id, snug = false) {
+async function boardAbove(page, id, snug = false, reach = false) {
   const item = subjects.find((s) => s.id === 'chess').units.flatMap((u) => u.lessons).flatMap((l) => l.items).find((i) => i.id === id);
   await page.goto('/');
   const bad = [];
@@ -345,7 +346,7 @@ async function boardAbove(page, id, snug = false) {
     await expect(page.locator('.foot.show')).toBeAttached();
     await page.screenshot({ path: test.info().outputPath(`${id}-${right ? 'right' : 'wrong'}.png`) });
     const at = await page.evaluate(() => ({ board: document.querySelector('div.board').getBoundingClientRect().bottom, verdict: document.querySelector('.foot.show').getBoundingClientRect().top }));
-    if (at.board > at.verdict + 1) bad.push(`${right ? 'right' : 'wrong'}: the board ends at ${Math.round(at.board)}, the verdict starts at ${Math.round(at.verdict)}`);
+    if (at.board > at.verdict + 1) bad.push(...(reach ? await page.evaluate(reachable, CHESS) : [`the board ends at ${Math.round(at.board)}, the verdict starts at ${Math.round(at.verdict)}`]).map((f) => `${right ? 'right' : 'wrong'}: ${f}`));
     if (snug) {
       const room = await page.evaluate(() => {
         const board = document.querySelector('div.board'), bubble = document.querySelector('.bubble');
