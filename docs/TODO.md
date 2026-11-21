@@ -267,7 +267,11 @@ block below; the fixes that came out of them are in docs/WINGBEAT.md under "Foun
     Then (#203): a sentence card keeps the rows it will fill to from the start, its empty slots all one width (it grew a row as it filled, moving the
     tiles); a tap on a coach mid-item says only an aside that fits her bubble as it stands, in every course (a taller one moved the board); a puzzle
     with two stars says "both stars".
-    **Left (low):** the code courses still replace a missed run at once (what it printed is shown, so the miss is not unexplained).
+    Then (#214): the code courses hold a missed run as Coding does, with the one `hold()` both use. The learner's own chips stay with what it printed
+    and Fennel saying what happened (only a line that fits his bubble as it stands, so nothing under it moves), then the way that works takes their
+    place. "It printed" now fades its last line when a run printed more lines than it shows: before, one line too many looked the same as the goal.
+    **Left (low):** the line an error stopped on is not marked (the chips run as one line). On a short phone a Test writing answer box can end
+    mid-chip, asked and held (`tb-1-3` at 412x533; pictures in `wingbeat-wt/notes/codemiss/feedback-small/`).
   - **Fixed** (#191, `npm run phone -- words`): a listening item was answered with advice about looking; every course's coach said its course was done
     today after one lesson of another; end screens overstated ("Plenty of bumps" for one miss in eight); nothing said the Blue Triangle was a butterfly; a
     few lines praised what the learner is. A verdict's words now fit how the item was answered (heard, moved, written, looked at). With Learning done today
