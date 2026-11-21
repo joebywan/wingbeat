@@ -50,10 +50,12 @@ export default async ({ page, touch, btn, shot, run, seed, check }) => {
       if (item.type === 'pairs') for (const [l, r] of item.pairs) { await touch(choice(l)); await touch(choice(r)); }
       if (item.type === 'build') for (const t of item.answer) await touch(choice(t));
       if (item.type !== 'teach') await shot(`${name}-item${i}-answered`);
-      // Nothing on the card or among the tiles reaches past the screen's edges, or out of its own box.
+      // Nothing on the card or among the tiles reaches past the screen's edges, or out of its own box. An inline box (the
+      // 🔊's span) has no box of its own to be out of: its clientWidth is 0 by the spec, and Firefox still gives it a
+      // scrollWidth (26 to Chrome's 0), so only its edges are checked; the button round it is checked whole.
       wide.push(...await page.evaluate((id) => [...document.querySelectorAll('.quiz .card *, .quiz .choice')].filter((e) => {
         const r = e.getBoundingClientRect();
-        return r.width && (r.left < 0 || r.right > innerWidth || e.scrollWidth > e.clientWidth + 1);
+        return r.width && (r.left < 0 || r.right > innerWidth || (getComputedStyle(e).display !== 'inline' && e.scrollWidth > e.clientWidth + 1));
       }).map((e) => `${id}: ${e.className} "${e.textContent.trim()}"`), item.id));
       await touch(btn('Continue', { exact: true }));
     }
