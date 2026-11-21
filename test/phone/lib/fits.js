@@ -231,7 +231,9 @@ export async function textTour(h, check, tag, { reach = false } = {}) {
     }
     await run(1000); await h.shot(`${tag.replaceAll(' ', '-')}-board-${lessonId}-answered`);
     const b = await page.evaluate(() => ({ board: Math.round(document.querySelector('div.board').getBoundingClientRect().bottom), verdict: Math.round(document.querySelector('.foot.show')?.getBoundingClientRect().top ?? -1) }));
-    check(`${tag}: Chess ${lessonId} answered: the whole board above the verdict`, b.verdict > 0 && b.board <= b.verdict + 1, JSON.stringify(b));
+    // With `reach` (under 320px wide) the board at its floor (ANSWERED, 150px) can be taller than the room: it has to scroll clear.
+    const lost = reach ? await page.evaluate(reachable, { parts: ['div.board'], tray: [] }) : [];
+    check(`${tag}: Chess ${lessonId} answered: the whole board ${reach ? 'can be scrolled clear of' : 'above'} the verdict`, b.verdict > 0 && (reach ? !lost.length : b.board <= b.verdict + 1), lost[0] ?? JSON.stringify(b));
   }
   await routine('Calm', 'calm');
   await routine('Move', 'move');
