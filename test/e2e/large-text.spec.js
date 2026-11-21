@@ -295,6 +295,19 @@ test.describe('a tablet on its side, text at 200%', () => {
   });
 });
 
+// At 200% her kept room is lines tall, and once answered she says a short line: the board is whole above the verdict and no
+// smaller than it has to be, so while it is under its own size her bubble is no taller than her words (fitBoard, exercise.js).
+for (const viewport of [{ width: 412, height: 786 }, { width: 360, height: 640 }]) test.describe(`text at 200%, ${viewport.width}x${viewport.height}`, () => {
+  test.use({ viewport, font: 32 });
+  for (const id of ['moves-0-rook', '4Gdlg', 'check-0-yes']) test(`a chess board (${id}) answered gets her empty room before it is made small`, async ({ page }) => {
+    test.setTimeout(60000);
+    // Known, and not her empty room: a true/false's claim stays in her bubble (three lines here), so with everything given
+    // way the board at its smallest (ANSWERED) still runs about 54px under a verdict that is half this screen.
+    test.fail(id === 'check-0-yes' && viewport.width === 360, 'a true/false at 200% on 360x640 is under the verdict (docs/TODO.md)');
+    expect(await boardAbove(page, id, true)).toEqual([]);
+  });
+});
+
 // Firefox for Android at the phone's font size 1.3 zooms the whole page: 324 x 612, --text-scale unset. While anything is
 // wider than the page it widens its viewport, and innerWidth and innerHeight with it (on the emulator, a 324 x 612 page read
 // 351 x 662 while a board's drawing was wider than its column). A desktop browser's are the window's, Firefox's too, so that
@@ -315,8 +328,11 @@ test.describe('Firefox for Android at font size 1.3 (324 x 612)', () => {
   });
 });
 
-/** Mounts chess item `id` and answers it right, then wrong, under the longest headline: what is wrong with where the board ends. */
-async function boardAbove(page, id) {
+/**
+ * Mounts chess item `id` and answers it right, then wrong, under the longest headline: what is wrong with where the board ends,
+ * and with `snug`, a board made smaller than its own size under a bubble taller than her words.
+ */
+async function boardAbove(page, id, snug = false) {
   const item = subjects.find((s) => s.id === 'chess').units.flatMap((u) => u.lessons).flatMap((l) => l.items).find((i) => i.id === id);
   await page.goto('/');
   const bad = [];
@@ -330,6 +346,24 @@ async function boardAbove(page, id) {
     await page.screenshot({ path: test.info().outputPath(`${id}-${right ? 'right' : 'wrong'}.png`) });
     const at = await page.evaluate(() => ({ board: document.querySelector('div.board').getBoundingClientRect().bottom, verdict: document.querySelector('.foot.show').getBoundingClientRect().top }));
     if (at.board > at.verdict + 1) bad.push(`${right ? 'right' : 'wrong'}: the board ends at ${Math.round(at.board)}, the verdict starts at ${Math.round(at.verdict)}`);
+    if (snug) {
+      const room = await page.evaluate(() => {
+        const board = document.querySelector('div.board'), bubble = document.querySelector('.bubble');
+        const width = board.getBoundingClientRect().width;
+        const set = board.style.width;
+        board.style.width = '';
+        const own = board.getBoundingClientRect().width;
+        board.style.width = set;
+        const copy = bubble.cloneNode(true);
+        copy.removeAttribute('id');
+        copy.style.cssText = `position:absolute;visibility:hidden;min-height:0;width:${bubble.offsetWidth}px`;
+        bubble.after(copy);
+        const words = copy.offsetHeight;
+        copy.remove();
+        return { width, own, bubble: bubble.offsetHeight, words };
+      });
+      if (room.width < room.own - 1 && room.bubble > room.words + 1) bad.push(`${right ? 'right' : 'wrong'}: a board of ${Math.round(room.width)}px (its own size ${Math.round(room.own)}) under a bubble ${room.bubble}px tall for ${room.words}px of words`);
+    }
   }
   return bad;
 }
