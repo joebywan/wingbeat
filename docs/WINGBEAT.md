@@ -299,8 +299,11 @@ chips, because one tap to play or to switch course is worth more than their row.
 - [x] **E25. Two leftovers that needed a decision** (#208): "start here" no longer uses up a course's "Skip ahead"; a title
   that names a count drops it once the learner has set their own (Calm's breaths and sighs, Focus's minutes).
 - [x] **E26. Every scenario in Firefox for Android** (#210, #211): 50 of the 60 pass there and five say they cannot be played
-  through the bridge. The app's one fault was in every browser: Mate started another tier under the last board's banner. Left,
-  in the TODO: an answered chess board runs under the verdict on a page 324px wide.
+  through the bridge. The app's one fault was in every browser: Mate started another tier under the last board's banner. Left
+  then: an answered chess board under the verdict on a page 324px wide (E27).
+- [x] **E27. The answered board under the verdict in Firefox for Android** (#212): at the phone's font size 1.3 the board was
+  sized for a taller screen. Firefox widens its viewport while anything is wider than the page, and the board's drawing was,
+  for a moment, each time the board was measured. The drawing is held to its board's width.
 
 **Waiting on the owner** (found by playing, not changed)
 

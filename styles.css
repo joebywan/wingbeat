@@ -132,6 +132,11 @@ html { scroll-padding-bottom: min(calc(160px * var(--text-scale, 1)), 40dvh); } 
   background: var(--card); border: 2px solid var(--line); border-width: 0 0 2px 2px; transform: rotate(45deg);
 }
 .board { width: 100%; aspect-ratio: 1; }
+/* cm-chessboard's drawing is never wider than its board, so it never makes the page wider: fitBoard (chess/exercise.js)
+   measures a board at its column's width while the drawing is still at its last size (it is redrawn a moment later), and
+   Firefox for Android widens innerWidth and innerHeight while anything is wider than the page, so a board fitted then was
+   sized for a bigger screen than the one it is shown on. Not a clip: Firefox for Android then drew no squares. */
+.board > div { max-width: 100%; }
 /* Answer buttons sit in the thumb zone, exactly where Continue will appear: no reaching. */
 .choices {
   position: fixed; left: 0; right: 0; bottom: 0; max-width: 520px; margin: 0 auto; display: flex; gap: 8px;

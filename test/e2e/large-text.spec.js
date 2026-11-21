@@ -208,19 +208,7 @@ for (const look of LOOKS) test.describe(look.name, () => {
   for (const id of ['moves-0-rook', 'board-0-e4', 'fork-0-find']) test(`a chess board (${id}) answered sits whole above the verdict`, async ({ page }) => {
     test.skip(look.font === 16, 'larger text only');
     test.setTimeout(60000);
-    const item = subjects.find((s) => s.id === 'chess').units.flatMap((u) => u.lessons).flatMap((l) => l.items).find((i) => i.id === id);
-    await page.goto('/');
-    const bad = [];
-    for (const right of [true, false]) {
-      await page.evaluate(mountChess, item);
-      await page.waitForTimeout(settles(item));
-      await playSteps(page, item, plays(item, right));
-      await expect(page.locator('.foot.show')).toBeAttached();
-      await page.screenshot({ path: test.info().outputPath(`${id}-${right ? 'right' : 'wrong'}.png`) });
-      const at = await page.evaluate(() => ({ board: document.querySelector('div.board').getBoundingClientRect().bottom, verdict: document.querySelector('.foot.show').getBoundingClientRect().top }));
-      if (at.board > at.verdict + 1) bad.push(`${right ? 'right' : 'wrong'}: the board ends at ${Math.round(at.board)}, the verdict starts at ${Math.round(at.verdict)}`);
-    }
-    expect(bad).toEqual([]);
+    expect(await boardAbove(page, id)).toEqual([]);
   });
 
   // A new piece's tag hangs half over the board's top edge; at larger text it is bigger, and it needs its own room under the coach's bubble.
@@ -306,6 +294,45 @@ test.describe('a tablet on its side, text at 200%', () => {
     await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
   });
 });
+
+// Firefox for Android at the phone's font size 1.3 zooms the whole page: 324 x 612, --text-scale unset. While anything is
+// wider than the page it widens its viewport, and innerWidth and innerHeight with it (on the emulator, a 324 x 612 page read
+// 351 x 662 while a board's drawing was wider than its column). A desktop browser's are the window's, Firefox's too, so that
+// is modelled here, in both: an answered board fitted while the page was wider was sized for a taller screen and ended under
+// the verdict. One item of each kind, right and wrong: a new piece's stars and the first real-game puzzle are the two the
+// phone caught (text.js).
+test.describe('Firefox for Android at font size 1.3 (324 x 612)', () => {
+  test.use({ viewport: { width: 324, height: 612 } });
+  for (const id of ['moves-0-rook', '4Gdlg', 'board-0-e4', 'capture-0-best', 'check-0-yes']) test(`a chess board (${id}) answered sits whole above the verdict`, async ({ page }) => {
+    test.setTimeout(60000);
+    await page.addInitScript(() => {
+      const root = () => document.documentElement;
+      const wide = () => Math.max(root().clientWidth, root().scrollWidth);
+      Object.defineProperty(window, 'innerWidth', { get: wide });
+      Object.defineProperty(window, 'innerHeight', { get: () => Math.round((root().clientHeight * wide()) / root().clientWidth) });
+    });
+    expect(await boardAbove(page, id)).toEqual([]);
+  });
+});
+
+/** Mounts chess item `id` and answers it right, then wrong, under the longest headline: what is wrong with where the board ends. */
+async function boardAbove(page, id) {
+  const item = subjects.find((s) => s.id === 'chess').units.flatMap((u) => u.lessons).flatMap((l) => l.items).find((i) => i.id === id);
+  await page.goto('/');
+  const bad = [];
+  for (const right of [true, false]) {
+    const steps = plays(item, right);
+    if (!steps) continue;
+    await page.evaluate(mountChess, item);
+    await page.waitForTimeout(settles(item));
+    await playSteps(page, item, steps);
+    await expect(page.locator('.foot.show')).toBeAttached();
+    await page.screenshot({ path: test.info().outputPath(`${id}-${right ? 'right' : 'wrong'}.png`) });
+    const at = await page.evaluate(() => ({ board: document.querySelector('div.board').getBoundingClientRect().bottom, verdict: document.querySelector('.foot.show').getBoundingClientRect().top }));
+    if (at.board > at.verdict + 1) bad.push(`${right ? 'right' : 'wrong'}: the board ends at ${Math.round(at.board)}, the verdict starts at ${Math.round(at.verdict)}`);
+  }
+  return bad;
+}
 
 /** Opens `lesson` and plays through it to its end screen. */
 async function playThrough(page, course, lesson) {
