@@ -297,13 +297,13 @@ test.describe('a tablet on its side, text at 200%', () => {
 
 // Firefox for Android at the phone's font size 1.3 zooms the whole page: 324 x 612, --text-scale unset. While anything is
 // wider than the page it widens its viewport, and innerWidth and innerHeight with it (on the emulator, a 324 x 612 page read
-// 351 x 663 while a board's drawing was wider than its column). Chromium's are the window's, so that is modelled here: an
-// answered board fitted while the page was wider was sized for a taller screen and ended under the verdict. One item of
-// each kind, right and wrong: a new piece's stars and the first real-game puzzle are the two the phone caught (text.js).
+// 351 x 662 while a board's drawing was wider than its column). A desktop browser's are the window's, Firefox's too, so that
+// is modelled here, in both: an answered board fitted while the page was wider was sized for a taller screen and ended under
+// the verdict. One item of each kind, right and wrong: a new piece's stars and the first real-game puzzle are the two the
+// phone caught (text.js).
 test.describe('Firefox for Android at font size 1.3 (324 x 612)', () => {
   test.use({ viewport: { width: 324, height: 612 } });
-  for (const id of ['moves-0-rook', '4Gdlg', 'board-0-e4', 'capture-0-best', 'check-0-yes']) test(`a chess board (${id}) answered sits whole above the verdict`, async ({ page, browserName }) => {
-    test.skip(browserName !== 'chromium', "Firefox on a desktop doesn't widen its viewport: the model is for Chromium");
+  for (const id of ['moves-0-rook', '4Gdlg', 'board-0-e4', 'capture-0-best', 'check-0-yes']) test(`a chess board (${id}) answered sits whole above the verdict`, async ({ page }) => {
     test.setTimeout(60000);
     await page.addInitScript(() => {
       const root = () => document.documentElement;
