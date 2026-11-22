@@ -308,6 +308,9 @@ chips, because one tap to play or to switch course is worth more than their row.
   turns) and Firefox for Android (which calls a touch screen that takes a stylus a fine pointer) show the upright line too; the rail's column of tabs
   fades at an edge with more past it. Measured and left as they are: a 360-wide phone at the largest text scrolls, with everything in reach; a call,
   answered or not, never hides the page, so a routine and its rain carry on.
+- [x] **E29. A missed run in the code courses is shown before it is replaced** (#214): the learner's own chips stay for Coding's hold, with what it
+  printed and Fennel saying what happened, then the way that works. One `hold()` for both. A printed line too many is no longer hidden behind a box
+  that looks the same as the goal.
 
 **Waiting on the owner** (found by playing, not changed)
 

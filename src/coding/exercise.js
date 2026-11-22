@@ -2,13 +2,12 @@ import { ARROW, answer, armsOf, fill, fixBug, fromTree, holes, howEnded, isBuilt
 import { builder, thumbTargets } from '../builder.js';
 import { gridHtml, walkerOn } from './grid.js';
 import { dragTile } from '../drag.js';
-import { flourish, play } from '../feel.js';
+import { flourish, hold, play } from '../feel.js';
 import { fitter, scrollBox } from '../fit.js';
 import { esc } from '../html.js';
 import { RUN_ENDS } from '../cast/lines.js';
 
 const DEMO_WAIT_MS = 900; // long enough to see the grid before a teach card's program plays
-export const MISS_HOLD_MS = 2400; // a missed run's own program stays up, marked where it stopped, this long before the way that works replaces it
 
 /**
  * Mounts one Coding item in `el` (the subject contract: see src/subjects.js). The grid sits on
@@ -47,32 +46,12 @@ export function mount(el, item, { say, done, coach }) {
     for (const b of later) b.classList.add('unrun');
     if (result.bumped) cellAt(result.bumped)?.classList.add('hit');
   };
-  /**
-   * Waits MISS_HOLD_MS, or until the first tap anywhere. That tap ends the wait, and its click never presses what
-   * comes up under the finger (the verdict's Continue). A tap on something that was already there (✕) still does its job.
-   */
-  const hold = () => new Promise((resolve) => {
-    const swallow = (e) => { if (e.target.closest?.('.foot')) { e.preventDefault(); e.stopPropagation(); } };
-    const end = (e) => {
-      endHold = null;
-      clearTimeout(timer);
-      removeEventListener('pointerdown', end, true);
-      if (e?.type === 'pointerdown') {
-        addEventListener('click', swallow, { capture: true, once: true });
-        setTimeout(() => removeEventListener('click', swallow, true), 700);
-      }
-      resolve();
-    };
-    const timer = setTimeout(end, MISS_HOLD_MS);
-    addEventListener('pointerdown', end, true);
-    endHold = end;
-  });
   const show = (program, picks = [], locked = true, tappable = null) => (item.view === 'js' ? '' : blocks(program, picks, locked, tappable))
     + (item.view ? code(program, picks, locked) : '');
 
   let gone = false;
-  let endHold = null; // ends a missed run's hold early, as a tap does
-  const cleanup = () => { gone = true; stop(); endHold?.(); };
+  let held = null; // a missed run's hold, ended early when the item goes
+  const cleanup = () => { gone = true; stop(); held?.end(); };
 
   if (kind(item) === 'teach') {
     if (!item.level) world.remove();
@@ -106,7 +85,7 @@ export function mount(el, item, { say, done, coach }) {
     if (!right) {
       markStop(result);
       say(why, 'wrong');
-      await hold();
+      await (held = hold());
       if (gone) return;
       programEl.innerHTML = oneWay();
       programEl.classList.add('shown');

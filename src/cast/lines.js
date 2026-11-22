@@ -780,6 +780,16 @@ export const RUN_ENDS = {
 };
 
 /**
+ * The code courses' own runs, said while the learner's code still shows (src/code/exercise.js), where the grader's reason
+ * (`why` from grade() in src/code/items.js) is too long for Fennel's bubble: its first part, the rest then in the verdict.
+ * Any other miss he says as `why` itself.
+ */
+export const CODE_ENDS = {
+  failed: 'The test "{name}" fails on the real code, so the test is the one that is off.',
+  through: 'A faulty version got through: {says}',
+};
+
+/**
  * Fennel, the Coding coach: a fennec fox who loves a plan and follows one to the letter, ears
  * first. Earnest, a little proud of his ears, fond of digging. The same kinds as LINES, so the
  * lesson and its end screen read his lines in place of Rosa's (subject `coach.lines`/`headlines`).

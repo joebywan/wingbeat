@@ -81,3 +81,47 @@ test('Fennel walks what the chips say on the same grid, and a test that lets a f
   await expect.poll(result).toBe(false);
   await expect(page.locator('#why')).toContainText('it multiplies instead of adding');
 });
+
+test('a missed run: "It printed" marks lines it cannot show, and Fennel says the reason only if it fits his bubble as it stands', async ({ page }) => {
+  await page.goto('/');
+  const mount = (item) => page.evaluate(async (item) => {
+    const { mount } = await import('/src/code/exercise.js');
+    document.body.innerHTML = '<main class="play"><div class="coach"><button class="who"></button><p class="bubble" id="said"></p></div><div id="t"></div></main><p id="why"></p>';
+    window.result = null;
+    mount(document.getElementById('t'), item, { say(t) { document.getElementById('said').textContent = t; }, done(right, why) { window.result = right; document.getElementById('why').textContent = why; } });
+  }, item);
+  const run = page.getByRole('button', { name: 'Run', exact: true });
+  const out = page.locator('.code-out');
+  const shown = page.locator('.program.shown');
+  // Two lines it should print. Three printed: the box shows two and marks the third (a fade over its edge).
+  const lines = { id: 'l', type: 'gap', goal: 'print', code: 'for (let i = 0; i < ___; i++) { console.log(i); }', fill: ['2'], decoys: ['3', '1'], prompt: 'How many?', explain: 'e' };
+  await mount(lines);
+  await chip(page, '3').click();
+  await run.click();
+  await expect(page.locator('#said')).toHaveText('That printed 0, 1, 2.'); // an ordinary miss: the reason is said
+  await expect(out).toHaveClass(/more-below/);
+  await expect(shown).toBeVisible({ timeout: 6000 });
+  // Two printed, the wrong two: nothing hidden, nothing marked.
+  const same = { ...lines, code: 'for (let i = 0; i < 2; i++) { console.log(i + ___); }', fill: ['0'], decoys: ['1'] };
+  await mount(same);
+  await chip(page, '1').click();
+  await run.click();
+  await expect(page.locator('#said')).toHaveText('That printed 1, 2.');
+  await expect(out).toHaveText('1\n2');
+  await expect(out).not.toHaveClass(/more-/);
+  await expect(shown).toBeVisible({ timeout: 6000 });
+
+  // A reason too long for his bubble: he keeps the prompt, and neither the bubble nor the program moves; it leads the verdict.
+  const long = { ...lines, code: 'for (let i = 0; i < ___; i++) { console.log("a line long enough to fill the bubble"); }', fill: ['1'], decoys: ['9'] };
+  await mount(long);
+  await chip(page, '9').click();
+  const where = () => page.evaluate(() => [document.getElementById('said').offsetHeight, Math.round(document.querySelector('.code-program').getBoundingClientRect().top)]);
+  const asked = await where();
+  await run.click();
+  await expect(page.locator('#said')).toHaveText(long.prompt);
+  await expect(shown).toHaveCount(0);
+  expect(await where(), 'the hold').toEqual(asked);
+  await expect(shown).toBeVisible({ timeout: 6000 });
+  expect(await where(), 'the way').toEqual(asked);
+  await expect(page.locator('#why')).toHaveText(/^That printed a line long enough to fill the bubble, /);
+});
