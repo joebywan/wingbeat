@@ -354,10 +354,13 @@ block below; the fixes that came out of them are in docs/WINGBEAT.md under "Foun
   **A build's kept rows: done** (#216). The rows a sentence's slots keep were counted at mount, before the card tightened, so on a short phone five of
   the first-sentence unit's nine builds kept an empty row, and `se3-build-332`'s card scrolled with its meaning cut off. They are counted once the
   card is fitted.
-  **Left:**   `moving`: once, a value changed while Fennel was between squares (`var-3-free`; seen once, cause not found; low). `words` has not been played
-  again in Firefox since its seed was fixed. What `away-bare` checks (a routine paused, quiet and letting the screen sleep after Home) is not
-  checked in Firefox. `landscape-all` stops after its first routine there, on a `click` the bridge's locators do not have (the upright line itself
-  shows, #213).
+  **The checks never finished there: played** (#217). `words` passes in Firefox. `moving`'s value that changed "between squares" (`var-3-free`) was the
+  test's own doing, in both browsers and on every run: the map gives way to smaller squares in the frame the last value shows (the item is answered
+  then), and the test measured a square once, so it read (5,2) as (4.06,1.62). It measures the square in each frame now; in the page the value is tied
+  to the move. `away-bare` plays in Firefox, whose page has nothing attached to it and so is bare as it is (real taps, read through the bridge, real
+  time): a routine pauses, goes quiet and lets the screen sleep after Home and after the lock screen, and is paused where it was on return. `away`'s
+  "sound while away" in Firefox was an open, silent stream, the page's sound engine, which closes within a second of Home. `landscape-all` plays to
+  its end there too, the upright line over a lesson of each of the five courses (the bridge's locators have a `click()` now).
   **What the emulator cannot show:** whether either freeze happens on a phone with a GPU (the emulator draws in software), and haptics (Firefox has none
   to call).
 
