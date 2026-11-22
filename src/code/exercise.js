@@ -76,7 +76,7 @@ export function mount(el, item, ctx) {
   const world = el.querySelector('.grid-world');
   const walker = g ? walkerOn(world, g) : null;
   const givenEl = el.querySelector('.code-given');
-  const { fit, settle } = fitter({ program: programEl, tray: foot, world, g, lines: ctx.coach?.lines });
+  const { fit, settle, keep } = fitter({ program: programEl, tray: foot, world, g, lines: ctx.coach?.lines });
   let gone = false;
   let held = null; // a missed run's hold, ended early when the item goes
   const cleanup = () => { gone = true; walker?.stop(); held?.end(); };
@@ -130,7 +130,8 @@ export function mount(el, item, ctx) {
   share(item.type === 'gap');
   fit(withOut(item, item.explain)); // room above the verdict to come, kept for the answer as it is built
   // Past the tray, an answer scrolls inside its own space, so neither moves: one laid out from nothing, or a gap filled longer.
-  if (!programEl.style.maxHeight) boxTo(programEl, foot.getBoundingClientRect().top, true);
+  if (!programEl.style.maxHeight) boxTo(programEl, foot.getBoundingClientRect().top, true, true);
+  keep(programEl.querySelector('.hole'), true); // the gap to fill shows whole as the item arrives, with the lines above it that fit
   runEl.addEventListener('click', async () => {
     runEl.disabled = true;
     board.lock();

@@ -319,6 +319,9 @@ chips, because one tap to play or to switch course is worth more than their row.
   counted before the card tightened; and the 🔊 button's "overflow" in Firefox was the check reading an inline box.
 - [x] **E32. The Firefox checks never finished** (#217): `words`, `away-bare` and `landscape-all` play in Firefox for Android and pass; the value
   that once changed "between squares" in `moving` was the test measuring a square once while the map gave way. Nothing in the app changed.
+- [x] **E33. The answer in view on a short phone** (#219): a box over the tray of answers ends on a whole row, and a fill-in item opens with its gap
+  in view (19 of 140 had it cut or out of sight on a 412x533 page, 8 on an ordinary 360x582 one). Tap targets a few pixels under 44 on a short phone
+  stay as they are: the room for them is the program's.
 
 **Waiting on the owner** (found by playing, not changed)
 

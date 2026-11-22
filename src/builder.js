@@ -178,7 +178,7 @@ export function builder(answerEl, trayEl, { chips, limit, meter, onChange, onTap
     for (const b of answerEl.querySelectorAll('button')) b.disabled = locked;
     for (const b of trayEl.querySelectorAll('[data-chip]')) b.disabled = locked || !canPlace(state, chips, +b.dataset.chip, limit);
     if (line) line.textContent = meter(api.used(), limit);
-    keepInView(answerEl, answerEl.querySelector('.here')); // the line being built shows, and the page never moves
+    keepInView(answerEl, answerEl.querySelector('.here, .hole')); // the line being built, or the next gap to fill, shows; the page never moves
     onChange?.(api);
   };
   const changed = () => { onTap?.(); paint(); };

@@ -2764,6 +2764,34 @@ test('a tall Coding program fits a 412x786 phone: clear of the tray while asked,
   }
 });
 
+// On the shortest page (412x533), asked: var-3-grow's map is already down to its least, and the program is 3px taller than the
+// room above the tray less the 8px gap fit() keeps. The tray draws a gap of its own, so the program takes those pixels and reads
+// whole, rather than scroll by 3px under a fade (boxTo in src/fit.js).
+test('at 412x533, var-3-grow reads whole above the tray while asked', async ({ page }) => {
+  await page.setViewportSize({ width: 412, height: 533 });
+  const lessons = codingCourse.units.map(withCheckpoint).flatMap((u) => u.lessons);
+  const at = lessons.findIndex((l) => l.id === 'var-3');
+  await page.addInitScript((done) => {
+    if (localStorage.getItem('wingbeat.progress')) return;
+    localStorage.setItem('wingbeat.course', 'coding');
+    localStorage.setItem('wingbeat.progress', JSON.stringify({ version: 2, habits: {}, log: [], cards: {}, start: 'x', met: { coding: true }, done }));
+  }, Object.fromEntries(lessons.slice(0, at).map((l) => [`coding:${l.id}`, true])));
+  await page.goto('/');
+  await page.locator('.node.here').click();
+  for (const item of lessons[at].items) {
+    await expect(page.locator('.program')).toBeVisible();
+    if (item.id === 'var-3-grow') {
+      const [prog, tiles] = await page.evaluate(() => [document.querySelector('.program'), document.querySelector('.tiles')].map((e) => ({ bottom: e.getBoundingClientRect().bottom, top: e.getBoundingClientRect().top, over: e.scrollHeight - e.clientHeight })));
+      expect(prog.over, 'nothing of the program is under its own box').toBeLessThanOrEqual(1);
+      expect(prog.bottom, 'the program meets the tray').toBeLessThanOrEqual(tiles.top);
+      return;
+    }
+    if (item.type !== 'teach') await solveCoding(page, item);
+    await continueButton(page).click();
+  }
+  throw new Error('no var-3-grow');
+});
+
 // A finger is not a point: every part of a block to tap must take the tap itself, never a neighbour's invisible
 // target. On a short phone the rows of a nested program sit close (a loop's head and the row inside it).
 for (const [width, height] of [[412, 533], [412, 786]]) test(`at ${width}x${height}, every point of a block to tap in a find-the-bug program hits that block`, async ({ page }) => {
