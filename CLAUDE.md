@@ -181,7 +181,9 @@ or minimum font size in a desktop browser is `test/e2e/large-text.spec.js`. `tes
   A tap on the coach mid-item (`run()` in app.js) says only an aside that fits her bubble as it stands (`fitsBubble()` in fit.js), in every course.
   **Once answered, being in view comes first:** if the board could not sit whole above the verdict even at its answered size (larger
   text keeps tall room for her words), her kept room goes, then `tall`, then `tighter`, and only then the board shrinks
-  (`test/e2e/large-text.spec.js` plays three items right and wrong at 125% and 200%).
+  (`test/e2e/large-text.spec.js` plays three items right and wrong at 125% and 200%). **At larger text** (`--text-scale` set) her kept room goes
+  sooner: as soon as the answered board would be made smaller than its own size, since she then says a short line in a bubble kept lines tall. At
+  ordinary text it stays, so the board never moves (decision 21; `board-still.spec.js`).
   **A board's drawing never makes the page wider** (`.board > div { max-width: 100% }`): `fitBoard` measures a board at its column's width
   before cm-chessboard redraws, and Firefox for Android widens `innerWidth`/`innerHeight` while anything is wider than the page, so a wider
   drawing had the answered board sized for a taller screen. Never a clip on the board: Firefox for Android then drew no squares.
