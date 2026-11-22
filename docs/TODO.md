@@ -274,8 +274,12 @@ block below; the fixes that came out of them are in docs/WINGBEAT.md under "Foun
     Then (#214): the code courses hold a missed run as Coding does, with the one `hold()` both use. The learner's own chips stay with what it printed
     and Fennel saying what happened (only a line that fits his bubble as it stands, so nothing under it moves), then the way that works takes their
     place. "It printed" now fades its last line when a run printed more lines than it shows: before, one line too many looked the same as the goal.
-    **Left (low):** the line an error stopped on is not marked (the chips run as one line). On a short phone a Test writing answer box can end
-    mid-chip, asked and held (`tb-1-3` at 412x533; pictures in `wingbeat-wt/notes/codemiss/feedback-small/`).
+    **Left (low):** the line an error stopped on is not marked (the chips run as one line).
+    Then (#219): a box over the tray of answers ends on a whole row (its 8px gap goes first, else it ends on the last whole row), and a fill-in item
+    opens with its first gap in view, the box scrolled to it at once where it has to be, and the next gap after each fill. Before, on a 412x533 page 32
+    of the code courses' answer boxes ended across a row (11 at 360x582) and the first gap was cut or out of sight in 19 of 140 fill-in items (8 at
+    360x582, an ordinary phone's page); now none. **Left (low):** answered, a box scrolled to the chip that matters shows 3 to 4px of the next row, and
+    the way that works after a miss ends a few px into its last line.
   - **Fixed** (#191, `npm run phone -- words`): a listening item was answered with advice about looking; every course's coach said its course was done
     today after one lesson of another; end screens overstated ("Plenty of bumps" for one miss in eight); nothing said the Blue Triangle was a butterfly; a
     few lines praised what the learner is. A verdict's words now fit how the item was answered (heard, moved, written, looked at). With Learning done today
@@ -380,7 +384,7 @@ sessions run longer. A quarter to a third of every session is repeats (2 warm-up
   `verdict covers` and nothing to scroll. Where it still can't fit, the program scrolls in its own box (fading out while there is more below), the
   block being run is kept in view, and once answered the box ends above the verdict with the block where the run stopped (or the fix) in view.
   **Left:** on a 412x533 page the verdict takes most of the screen, so an answered tall program shows in a box 27 to 120px high (part of a row to a few
-  rows, the block that matters among them); the program reads whole while asked, short of 3 to 4px in `var-3-grow`, `bug-3-count` and `bug-3-sign`. A laid-out answer (palette, free) that
+  rows, the block that matters among them); the program reads whole while asked (#219: `var-3-grow` takes its 3px from the gap above the tray; `bug-3-count` and `bug-3-sign` were never cut, `scrollHeight` was counting the last row's invisible thumb targets). A laid-out answer (palette, free) that
   is long still scrolls in its box at 412x786, as before. Its edges show more above or below with `scrollBox()` (plain gradients; the mask it used first crashed the emulator's software renderer).
 - **Small tap targets and mis-taps** (low): every block to tap in a program (Coding and the code courses) gets an invisible target sized by
   `reachOf()` in `src/builder.js`: toward 44px each way into empty space, but only halfway to any other block to tap, so no target lies over
@@ -391,8 +395,11 @@ sessions run longer. A quarter to a third of every session is repeats (2 warm-up
   find-the-bug was never a trap: tapping another block picks that one instead, and filling the wrong one counts as a miss with the explanation.
   Blocks 28 to 30px wide or tall that sat 0 to 6px from a neighbour got only half the gap. Now (#197) a gap is shared by need (a neighbour already 44px
   across leaves the whole gap to the narrow one) and tight rows have a little more room sideways: at 412x786 and 375x812 every block reaches 44px each way.
-  **Left (low):** on a short phone a 36px go block reaches 40 to 42 across, and in `bug-3-count` and `bug-3-sign` a 28px value reaches 35 to 43 up and
-  down; wider rows would push those programs past the tray. The harness measures drawn sizes, so it still lists these.
+  **Left as it is (low), measured in #219:** on a short phone a 36px go block reaches 42 to 43 across, and in `bug-3-count` and `bug-3-sign` a 28px
+  value reaches 36 to 38 up and down (a loop's head sits 3.7px above its first inner row). Reaching 44 takes 12px more above inner rows, which at
+  412x533 puts `var-3-grow` back in a scrolling box (41px hidden) with nine more programs and shrinks 35 maps; kept to find-the-bug programs it still
+  boxes `bug-3-draw` (62px hidden). A program in view is worth more than the last pixels of a target no tap has missed. The harness measures drawn
+  sizes, so it still lists these.
 - **Firefox for Android:** its first lesson was played there (#181); the rest rests on the desktop Firefox suite. A finger's part is under "Test by playing".
 **Coding: bigger improvements**
 
@@ -475,7 +482,9 @@ Short phone (412x533, `CHESS_SMALL=1080x1700`): `mateIn3-1`, `attraction-0`, `fo
   through their line. And every real-game puzzle says why its line works (`src/chess/why.js`): the facts are worked out from the position and proved against it
   in a test, 329 of 336 with a sentence of their own and 7 with their theme's general idea. Which wording shows is chosen by measuring the verdict on the page
   (the full sentence, a shorter one, the line alone), so the board is never under it: at 412x533, 291 show the full sentence, 26 the shorter, 14 less.
-  **Left:** the hand-written Forks unit keeps its written explanations; under the coach's longest headline a short headline could have fitted a longer wording.
+  **Left as it is:** the hand-written Forks unit keeps its written explanations. A wording is chosen under the coach's longest headline, so under a
+  short one a longer wording could sometimes have fitted. Chosen that way the same puzzle reads the same every time and the choice can be tested,
+  which is worth more than the extra sentence.
 - **Wrong moves, Play Rosa, Mate and Scramble: played** (#179; `chess-wrong-all`, `chess-rosa-all`, `chess-games`, `chess-games-small`; the two `-all` ones run by name only).
   Twelve lessons from eleven units were each answered wrongly first: nothing wrong was accepted, a wrong move snaps back and the second miss marks the piece to move,
   the right square with a piece the line doesn't need is explained and free, and a mate other than the stored line counts. Play Rosa at all four levels, both colours,
@@ -617,7 +626,8 @@ Found, not fixed (design calls or bigger than a few lines):
   path is raising a close-up picture at the end of the streak row (nothing once it has emerged), and the one-tap hint only before
   the first log.
   At 412x786 a month in, the first unit's title now starts at 329 (Chess) and 263 (Calm), from 448 and 337 (`npm run phone --
-  home-days`). Chess at 360x640 is still at about 352 of 640, its Games row the difference.
+  home-days`). Chess at 360x640 is still at about 352 of 640, its Games row the difference. Accepted: `layouts.spec.js` holds it under 60% of the
+  screen, so it cannot creep.
 - **Numbers still show for the other habits** next to a quiet one (by design: only Calm, Reflect and Wind down are quiet), so a
   30-day home reads "Move 30", "Walk 30", "Learning 31" beside Calm's dot. Fine; noted because the plan's "no count" reads wider.
 - **No way into the wardrobe from home**: it is in ⋯ (last, under Garden) and on the garden screen. Fine if intended.

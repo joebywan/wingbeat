@@ -228,7 +228,10 @@ or minimum font size in a desktop browser is `test/e2e/large-text.spec.js`. `tes
   under a fixed bar**: fit first (the coach, the gaps and the pictures give up room), then that part scrolls in its
   own box, never the page. `verdictHeight()` measures the verdict before it comes; `fitter()` gives Coding and the
   code courses `fit`, `settle` and `keep` (the block being run stays in view); `fitCard()` fits a quiz card (Maths,
-  Japanese); a box that scrolls ends on a whole row or line. `scrollBox(el)` is the one way to make a box scroll: it
+  Japanese); a box that scrolls ends on a whole row or line. Over the tray `boxTo(…, tray)` gives up its 8px gap first, for the row to
+  be whole, then rounds down to the last whole row, never past where the next tap fills (`wholeRows` finds rows in anything inside a box); a fill-in
+  item scrolls its box to its first gap as it arrives (`keep(el, true)`: at once, ending on that row) and the builder keeps the next gap in view after
+  each fill. `scrollBox(el)` is the one way to make a box scroll: it
   marks the box `more-above` / `more-below` as it scrolls, resizes or is redrawn, and styles.css lays a plain gradient
   in the box's own colour (`--fade`) over that edge. **Never a CSS mask on a box that scrolls:** it crashes the
   emulator's software renderer (#164) and stopped Firefox for Android drawing for good (#181, the tabs row), **nor a rounded box
