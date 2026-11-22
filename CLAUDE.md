@@ -214,7 +214,7 @@ or minimum font size in a desktop browser is `test/e2e/large-text.spec.js`. `tes
   mounts them; `ctx.lang` marks text for the system font and picks the voice (`speak()` in feel.js:
   `speechSynthesis`, and with no voice or Sound muted the reading is shown instead). A missed build shows what was
   put under the right answer (`.yours`, "You put …", up to the wrong tile); its line is kept from the start, so nothing moves.
-  A build's slots keep the rows they will fill to (`--rows`, counted at mount with every slot filled), all one width while empty.
+  A build's slots keep the rows they will fill to (`--rows`, counted by `fitCard()` with every slot filled, once the card is fitted), all one width while empty.
 - Japanese: `src/data/japanese.json` (all of hiragana, the sounds that change and small kana, everyday words,
   greetings, and a first sentence with は: これは ねこです), coached by Kaede, a red panda (`src/cast/kaede.js`,
   rig-posed). Sentences are `build` items with word tiles. `test/quiz.test.js` checks every answer against its own kana
@@ -231,7 +231,8 @@ or minimum font size in a desktop browser is `test/e2e/large-text.spec.js`. `tes
   Scroll-driven animations don't run in Firefox. A screen that
   fits is left as it is. On a short phone (a 412x533 page) every course is played this way: `…_SMALL=1080x1700`.
   The verdict gives way too (`giveWay(foot)`): it is at most half the screen (`.foot`, 50dvh); past that its headline is
-  held to two lines and to the explanation's size, then its words `scrollBox()`. `verdictHeight()` measures it that way,
+  held to two lines and to the explanation's size, then its words `scrollBox()`. Whether its words run past their box is measured to the fraction of a
+  pixel (where they end against where the box ends), never with `scrollHeight`, a whole number that hid 1.35px in Firefox for Android. `verdictHeight()` measures it that way,
   under the coach's longest headline (`longestVerdict()`; tests pin that line with `WINGBEAT_LONGEST`). A program is
   never boxed to under a line: answered, `settle()` has the map give way first (it is no longer tapped: down to 28px squares),
   then the coach (`.tall`), then her words keep only the room they take (`.tighter`); `flows.spec.js` answers every Coding item
