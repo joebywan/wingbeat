@@ -66,7 +66,9 @@ export function giveWay(foot, scrolls = true) {
   // It covers the answers it replaces: never shorter than their tray (a code check card's rows), up to half the screen.
   const tray = Math.max(0, ...[...document.querySelectorAll('.play .choices')].filter((t) => t.children.length && getComputedStyle(t).position === 'fixed').map((t) => t.offsetHeight));
   foot.style.minHeight = tray ? `${Math.min(tray, Math.floor(innerHeight / 2))}px` : '';
-  const over = () => box.scrollHeight > box.clientHeight + 1;
+  // Measured to the fraction of a pixel: scrollHeight and clientHeight are whole numbers, so 109.05px of words in a 107.7px
+  // box read 109 against 108, and their last 1.35px went past the box unscrolled (Firefox for Android, font size 2.0).
+  const over = () => box.lastElementChild.getBoundingClientRect().bottom > box.getBoundingClientRect().bottom + 0.1;
   foot.classList.remove('clamp');
   box.classList.remove('scrolls');
   box.scrollTop = 0;
@@ -260,5 +262,8 @@ export function fitCard(quiz, item, coach) {
     const box = code ?? card;
     if (over() > 0) { box.style.maxHeight = `${Math.floor(box.getBoundingClientRect().height - over())}px`; scrollBox(box); }
   }
+  // A build's slots keep the rows they fill to (styles.css reads --rows), counted as the card has been fitted (a tighter
+  // card's smaller slots fill fewer rows), so filling them never moves what is under them and no empty row is kept.
+  if (slots.length) card.querySelector('.slots').style.setProperty('--rows', new Set(slots.map((s) => s.offsetTop)).size);
   slots.forEach((s, i) => { s.textContent = was[i]; });
 }
