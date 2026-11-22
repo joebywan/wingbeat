@@ -86,6 +86,7 @@ function client() {
     texts: (els) => els.map((e) => e.textContent),
     innerText: ([el]) => el.innerText,
     attr: ([el], name) => el.getAttribute(name),
+    click: ([el]) => { el.click(); return true; },
     scroll: ([el]) => {
       const r = el.getBoundingClientRect();
       // Out of the viewport, or under something fixed over it (a bar of buttons): to the middle, where a finger can reach it.
@@ -279,6 +280,9 @@ export async function bridged(port, launch) {
     innerHTML() { return this.evaluate((el) => el.innerHTML); }
     getAttribute(name) { return this.#attached('attr', name); }
     scrollIntoViewIfNeeded() { return this.#attached('scroll'); }
+    // Not Playwright's (a trusted pointer click at the element): the element's own click() in the page, once it shows.
+    // No touch and no user activation, so where a scenario needs a finger it taps (`touch`); landscape.js clicks after a turn.
+    async click() { await this.waitFor(); return this.#op('click'); }
     evaluate(fn, arg) { return this.#attached('eval', { fn: String(fn), arg }); }
   }
   const root = new Locator([]);

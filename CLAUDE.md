@@ -81,7 +81,7 @@ or minimum font size in a desktop browser is `test/e2e/large-text.spec.js`. `tes
   refusing requests while "offline"; `--url` the live site). `KEYBOARD_SMALL=1080x1700` plays `touch-keyboard` on a short phone.
   **A page the runner is attached to never goes to the background** (Chrome is started to keep drawing, and the harness holds
   the screen on), so anything about being away from a routine is played by `away-bare` and `away-bare-app`, which let go of
-  the page first. `test/phone/lib/device.js` has `turn` (the one way to turn the screen; `rotate` runs only with `ROTATE` set),
+  the page first (a bridged browser's page is not attached, and `away-bare` plays it as it is). `test/phone/lib/device.js` has `turn` (the one way to turn the screen; `rotate` runs only with `ROTATE` set),
   `putDown`, `screenOff`, `awake`. The browser suites keep their output in `test-results/e2e`, `e2e-firefox` and `live` (each config's `outputDir`), so they never empty the phone's pictures.
 - **Firefox for Android:** `npm run phone -- --browser firefox [scenario...]` plays the same scenarios in Firefox on the emulator.
   Firefox speaks no protocol Playwright drives, so the test server adds one script to the page (`tools/bridge.js`) that asks the
@@ -104,8 +104,11 @@ or minimum font size in a desktop browser is `test/e2e/large-text.spec.js`. `tes
   asks the person before it keeps a site's storage, it follows the phone's font size by zooming the whole page (216px wide at 2.0),
   while anything is wider than the page it widens its viewport, `innerWidth` and `innerHeight` with it (a 324 x 612 page read 351 x 662),
   it calls the emulator's touch screen (which also takes a stylus) a fine pointer, so nothing reads `(pointer: coarse)`, and it has no `navigator.vibrate`. What a bridged browser cannot do prints one line there and is not counted: haptics (`checkBuzz`),
-  `attach()`, `page.route`, Chrome's Default zoom and its devtools socket (`app`, `away-bare-app`, `sync`, `zoom`, `away-bare`). Every page
-  served carries the bridge; its locators take `hasText`, `>>`, `nth=`, `:visible` and `.and`, and any other option throws. In a plain run
+  `attach()`, `page.route`, Chrome's Default zoom and its devtools socket (`app`, `away-bare-app`, `sync`, `zoom`). `away-bare` plays there
+  without its restart: a bridged page has nothing attached, so it is driven by real taps, read through the bridge and run on real time
+  (`page.clock.resume()`), and letting go is not asking it anything while the phone is down. Every page
+  served carries the bridge; its locators take `hasText`, `>>`, `nth=`, `:visible` and `.and`, and any other option throws; a locator's `click()`
+  is the element's own `click()` in the page (no touch, no user activation), for a scenario that cannot tap (`landscape-all` after a turn). In a plain run
   `persist` comes before `persist-logged`, which then says storage is already kept and checks that nothing is asked.
 - `hands` plays by sight: with `HANDS_DIR` set it saves the screen and waits for one command at a time in a file (tap, swipe,
   type, back), each done with a real touch. It is how a blind playthrough is done (an agent that has not read the answers).

@@ -317,6 +317,8 @@ chips, because one tap to play or to switch course is worth more than their row.
 - [x] **E31. Quiz cards, to the fraction of a pixel** (#216): a verdict at half the screen whose words ran 1.35px past their box did not give way,
   because the overflow was read in whole pixels (Firefox for Android at font size 2.0); a sentence card kept an empty row on a short phone, its rows
   counted before the card tightened; and the 🔊 button's "overflow" in Firefox was the check reading an inline box.
+- [x] **E32. The Firefox checks never finished** (#217): `words`, `away-bare` and `landscape-all` play in Firefox for Android and pass; the value
+  that once changed "between squares" in `moving` was the test measuring a square once while the map gave way. Nothing in the app changed.
 
 **Waiting on the owner** (found by playing, not changed)
 
