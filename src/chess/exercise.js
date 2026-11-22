@@ -66,7 +66,7 @@ export function fitBoard(boardEl, choices, item, ctx, tapped = () => TAPPED.incl
   /** The coach's words keep the room of the tallest line this item can say, so a shorter one never moves the board up. */
   const hold = () => {
     if (!bubble || !said.length) return;
-    if (loose) { bubble.style.minHeight = ''; return; }
+    if (loose) { bubble.style.minHeight = '0'; return; } // not even `.tall`'s two lines (styles.css)
     bubble.style.minHeight = '';
     const copy = bubble.cloneNode(false);
     copy.removeAttribute('id');
@@ -99,6 +99,9 @@ export function fitBoard(boardEl, choices, item, ctx, tapped = () => TAPPED.incl
     // words): being in view now comes before keeping still (decisions 21 and 25). Her kept room goes first, then the coach
     // and the gaps (`tall`), then her face (`tighter`); then the board shrinks to what is left, down to ANSWERED.
     if (answered && foot) {
+      // At larger text her kept room is lines tall and nearly empty once she says a short line: there it goes as soon as
+      // the board would be made smaller than its own size. At ordinary text it stays, so the board never moves (decision 29).
+      if (document.documentElement.style.getPropertyValue('--text-scale') && roomNow() < natural) { loose = true; hold(); }
       for (const give of [() => { loose = true; hold(); }, () => boardEl.classList.add('tall'), () => boardEl.classList.add('tighter')]) {
         if (roomNow() >= Math.min(natural, ANSWERED)) break;
         give();

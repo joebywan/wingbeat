@@ -223,7 +223,11 @@ block below; the fixes that came out of them are in docs/WINGBEAT.md under "Foun
   **Tablet runs work again:** the runner read the tablet's size upright while it runs on its side, so its calibration tap missed the page. Played on the
   tablet since: ⋯ at text 2.0 (home fits), and Reflect on its side with the keyboard up (no upright line, the field and Next clear). A browser suite no
   longer empties the phone runs' pictures: each Playwright config has its own output folder.
-  **Left (low):** at text 2.0 an answered board that fits at its small size keeps her empty room above it.
+  Then (#215): at larger text an answered board gets her empty room before it is made small. Her bubble keeps the room of her longest line while an
+  item is played; once answered she says a short one, and at 2.0 that left a board about 150px wide under a tall, nearly empty bubble (about 210px now,
+  on a 412x786 page). At larger text the board therefore moves up as the verdict comes; at ordinary text nothing changes and its top stays put.
+  **Left (low):** at 2.0 on a 360x640 page a true/false's board ends about 54px under the verdict and scrolls clear of it: her bubble keeps the claim
+  the explanation is about, and everything else has given way.
 - **Tablet and landscape leftovers: done** (#205). On a wide screen ⋯ sat over the tab behind it whenever the tabs outgrew the screen: on the tablet at
   larger text (2.0, and "+ Habit" at 1.3), and at ordinary text in a short wide window. The tabs now scroll in their own box, which ends above ⋯ (and since #213
   fades at an edge where more tabs lie that way); the shared audit fails a tab under it. The tablet's `app` run passes: its two failing checks measured the wrong thing (the two seconds a screen dump takes
