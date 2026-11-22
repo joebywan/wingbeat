@@ -109,12 +109,15 @@ export function fitsBubble(bubble, lines) {
   return fits;
 }
 
-/** Scrolls `box` (never the page) so `el` in it shows: smoothly, unless motion is reduced. */
-export function keepInView(box, el) {
+/**
+ * Scrolls `box` (never the page) so `el` in it shows: smoothly, unless motion is reduced. `now` (as an item arrives): at once,
+ * and to `el`'s own edge, so a box that ends on a whole row (`boxTo`) still does.
+ */
+export function keepInView(box, el, now = false) {
   if (!el || box.scrollHeight <= box.clientHeight) return;
-  const b = box.getBoundingClientRect(), r = el.getBoundingClientRect();
-  const by = r.top < b.top ? r.top - b.top - 6 : r.bottom > b.bottom ? Math.min(r.bottom - b.bottom + 6, r.top - b.top - 6) : 0;
-  if (by) box.scrollBy({ top: by, behavior: reducedMotion() ? 'auto' : 'smooth' });
+  const b = box.getBoundingClientRect(), r = el.getBoundingClientRect(), m = now ? 0 : 6;
+  const by = r.top < b.top ? r.top - b.top - m : r.bottom > b.bottom ? Math.min(r.bottom - b.bottom + m, r.top - b.top - m) : 0;
+  if (by) box.scrollBy({ top: by, behavior: now || reducedMotion() ? 'auto' : 'smooth' });
 }
 
 /**
@@ -153,7 +156,7 @@ const NEXT = '.here, .fill-next, .hole';
  * only ever shrinks. With `always`, the box ends at `bottom` whatever `el` holds now or was before (an answer that grows).
  * Over the `tray` (whose own padding is a gap too) a box ends on a whole row of what it holds (`wholeRows`): the 8px go
  * first, for a row or all of it, else it ends on the last whole row, if that still holds a LINE and all of where the next tap
- * fills, when that shows (a gap to fill cut by the box stays cut rather than go).
+ * fills. Where that is further down, the box keeps its height: it is seen scrolled to it (`keep(el, true)`), ending on its row.
  */
 export function boxTo(el, bottom, always = false, tray = false) {
   let room = Math.floor(bottom - topOf(el) - 8);
@@ -161,10 +164,9 @@ export function boxTo(el, bottom, always = false, tray = false) {
   if (tray) {
     all = wholeRows(el, Infinity); // what it holds, without the invisible thumb targets past its last row
     const rows = wholeRows(el, room + 8);
-    const next = el.querySelector(NEXT)?.getBoundingClientRect(), top = el.getBoundingClientRect().top - el.scrollTop;
-    const keep = next && next.top - top < room ? next.bottom - top : 0; // where the next tap fills, if any of it shows
+    const next = el.querySelector(NEXT)?.getBoundingClientRect().bottom - el.getBoundingClientRect().top + el.scrollTop || 0;
     if (all <= room + 8) room = Math.max(room, all);
-    else if (rows >= Math.max(LINE, keep)) room = rows;
+    else if (rows >= Math.max(LINE, next)) room = rows; // else it is seen scrolled to where the next tap fills (`keep`), and ends on that row
   }
   if (!always && (all <= room + 1 || room >= parseFloat(el.style.maxHeight))) return;
   el.style.maxHeight = `${room}px`;
@@ -200,7 +202,7 @@ const SQUARE = 28, PICK_SQUARE = 36; // the smallest a map's squares get for a t
  *                A program that fits is left as it is.
  *   settle(el, always)  once answered: the program's box ends above the verdict as it really came (`boxTo`), with `el` in view;
  *                if that would leave less than a LINE of it, the coach gives way first (`.tall`)
- *   keep(el)     scrolls the program's box to `el`
+ *   keep(el, now)  scrolls the program's box to `el` (`now`: at once, as an item arrives)
  */
 export function fitter({ program, tray, world = null, g = null, lines }) {
   const trayed = () => tray?.isConnected && tray.children.length;
@@ -218,7 +220,7 @@ export function fitter({ program, tray, world = null, g = null, lines }) {
     if (map && fits < high) world.style.width = `${(fits * g.w) / g.h}px`;
     boxTo(program, bottom, false, trayed() && bottom === trayTop()); // the tray: a row is whole
   };
-  const keep = (el) => keepInView(program, el);
+  const keep = (el, now) => keepInView(program, el, now);
   const settle = (el, always = false) => {
     const foot = document.querySelector('.foot.show');
     if (foot) {

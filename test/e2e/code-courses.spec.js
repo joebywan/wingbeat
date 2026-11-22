@@ -44,8 +44,8 @@ for (const [width, height] of [[360, 582], [360, 640], [375, 812]]) test(`every 
     const { chipsOf, wayOf } = await import('/src/code/items.js');
     const app = document.getElementById('app');
     const out = [];
-    for (const [n, item] of items.entries()) {
-      app.innerHTML = `<header class="bar" style="height:44px"></header><main class="play"><p class="topic">Topic</p>
+    for (const [n, item] of items.entries()) { // the bar as tall as a session's (its close button and meter): 61px
+      app.innerHTML = `<header class="bar" style="height:61px"></header><main class="play"><p class="topic">Topic</p>
         <div class="coach"><button class="who"></button><p class="bubble"></p></div><div class="stage"></div></main>`;
       const bubble = app.querySelector('.bubble');
       const stop = mount(app.querySelector('.stage'), item, { say(t) { bubble.textContent = t; }, done() {} });
@@ -56,13 +56,23 @@ for (const [width, height] of [[360, 582], [360, 640], [375, 812]]) test(`every 
         if (rect.bottom > innerHeight + 1) note('the tray runs off the screen');
         if (tiles.querySelector('.run').getBoundingClientRect().bottom > innerHeight + 1) note('Run is off the screen');
         for (const c of tiles.querySelectorAll('[data-chip]')) if (c.getBoundingClientRect().height < 40 || c.scrollWidth > c.clientWidth + 1) note(`chip ${c.textContent} is cramped`);
-        // Asked, a box that scrolls ends on a whole row (boxTo in src/fit.js): never across a chip, a gap or a line of the code,
-        // but a gap still to fill, which stays there in part rather than go.
-        const box = app.querySelector('.program'), end = box.getBoundingClientRect().top + box.clientHeight;
+        // Asked, a box that scrolls ends on a whole row (boxTo in src/fit.js): never across a chip, a gap or a line of the code.
+        const box = app.querySelector('.program'), end = box.getBoundingClientRect().top + box.clientTop + box.clientHeight;
         const across = [...box.querySelectorAll('.answer :is(button, .hole, .fixed-word)')].filter((e) => e.getBoundingClientRect().top < end - 1 && e.getBoundingClientRect().bottom > end + 1);
-        if (across.length && !across.some((e) => e.matches('.hole'))) note(`the answer's box ends across a row: ${across.map((e) => `${e.textContent || 'a gap'} (${Math.round(end - e.getBoundingClientRect().top)} of ${Math.round(e.getBoundingClientRect().height)}px)`).join(', ')}`);
+        if (across.length) note(`the answer's box ends across a row: ${across.map((e) => `${e.textContent || 'a gap'} (${Math.round(end - e.getBoundingClientRect().top)} of ${Math.round(e.getBoundingClientRect().height)}px)`).join(', ')}`);
+        // The gap to fill is what the learner works on: whole in sight in its box as the item arrives, and the next one after each fill.
+        const inSight = (when) => {
+          const gap = box.querySelector('.hole');
+          if (!gap) return;
+          const top = box.getBoundingClientRect().top + box.clientTop, r = gap.getBoundingClientRect();
+          if (r.top < top - 1 || r.bottom > top + box.clientHeight + 1) note(`${when}, the gap to fill is out of sight: ${Math.round(r.top - top)} to ${Math.round(r.bottom - top)}px in a box ${box.clientHeight}px high`);
+        };
+        inSight('asked');
         const words = item.type === 'gap' ? item.fill : chipsOf(wayOf(item), item.chunks);
-        for (const w of words) [...tiles.querySelectorAll('[data-chip]')].find((c) => c.textContent === w).click();
+        for (const [i, w] of words.entries()) {
+          [...tiles.querySelectorAll('[data-chip]')].find((c) => c.textContent === w).click();
+          inSight(`after fill ${i + 1}`);
+        }
         const prog = app.querySelector('.program');
         const roof = tiles.getBoundingClientRect().top;
         const r = prog.getBoundingClientRect();
