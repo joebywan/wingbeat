@@ -3,6 +3,7 @@ import calm from '../../src/data/calm.json' with { type: 'json' };
 import { emptyProgress, finishPractice } from '../../src/progress.js';
 import { toQuiz } from '../../src/maths/items.js';
 import { subjects } from '../../src/subjects.js';
+import { RUN_ENDS } from '../../src/cast/lines.js';
 
 // Sessions here play exactly what the course lists: meeting a coach and the repeats have their own spec (meet.spec.js).
 export const test = base.extend({
@@ -57,4 +58,27 @@ export async function reach(page, course, lessonId, itemId) {
     await continueButton(page).click();
   }
   throw new Error(`no ${itemId}`);
+}
+
+/**
+ * A missed run (Coding, or a code course), then a tap (or a finger's touch) where Continue will be, during the hold:
+ * it goes straight to the way that works and does not also press that Continue. `miss(page)` plays the miss and
+ * returns what the coach says over it.
+ */
+export async function tapDuringHold(page, finger, miss) {
+  const said = await miss(page);
+  await expect(page.locator('#said')).toHaveText(said);
+  await expect(page.locator('.foot.show')).toHaveCount(0);
+  // Where Continue will be: the middle of the bottom of the screen.
+  const next = await page.evaluate(() => [innerWidth / 2, innerHeight - 40]);
+  const asked = Date.now();
+  if (finger) await page.touchscreen.tap(next[0], next[1]); else await page.mouse.click(next[0], next[1]);
+  await expect(page.locator('.program.shown')).toBeVisible();
+  await expect(page.locator('.foot.wrong')).toBeVisible();
+  expect(Date.now() - asked, 'well inside the hold').toBeLessThan(1500);
+  await page.waitForTimeout(800);
+  await expect(page.locator('.foot.wrong'), 'the tap did not also press Continue').toBeVisible();
+  await expect(page.locator('#said')).toHaveText(RUN_ENDS.way);
+  await continueButton(page).click(); // and Continue works as ever after it
+  await expect(page.locator('.foot.show')).toHaveCount(0);
 }

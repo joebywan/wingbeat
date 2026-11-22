@@ -2,6 +2,7 @@ import { ParseError, RunError, Stop, parse, run, same, show, tokenize } from './
 import { check } from './types.js';
 import { STEPS, mirrored, parse as parseLevel, reached, run as walkLevel } from '../coding/program.js';
 import { shuffle } from '../quiz/items.js';
+import { CODE_ENDS } from '../cast/lines.js';
 
 /**
  * The code courses' items, pure: JavaScript, TypeScript and test-writing all use these. The learner
@@ -389,13 +390,16 @@ function gradeTests(item, src) {
   const empty = real.results.find((t) => !t.expects && !t.failed); // one that stopped before its expect fails, below
   if (empty) return { right: false, why: `The test "${empty.name}" has no expect in it, so it checks nothing.` };
   const wrong = real.results.find((t) => t.failed);
-  if (wrong) return { right: false, why: `The test "${wrong.name}" fails on the real code, so the test is the one that is off. ${wrong.failed}`, results: real.results };
+  if (wrong) {
+    const said = CODE_ENDS.failed.replace('{name}', () => wrong.name);
+    return { right: false, why: `${said} ${wrong.failed}`, said, results: real.results };
+  }
   const caught = item.mutants.map((m) => {
     const r = ask(m.code);
     return { says: m.says, caught: !!r.error || r.results.some((t) => t.failed) };
   });
   const through = caught.filter((c) => !c.caught);
-  if (through.length) return { right: false, caught, why: `Your tests pass on the real code, but a faulty version got through: ${through[0].says}` };
+  if (through.length) return { right: false, caught, why: `Your tests pass on the real code, but a faulty version got through: ${through[0].says}`, said: CODE_ENDS.through.replace('{says}', () => through[0].says) };
   return { right: true, caught, why: `Your tests caught ${caught.length === 1 ? 'the faulty version' : `all ${caught.length} faulty versions`}.` };
 }
 
@@ -405,8 +409,9 @@ export const called = (item, args) => `${item.name}(${args.map((a) => show(a, fa
 export const exampleOf = (item, [args, want]) => `${called(item, args)} gives ${show(want, false)}`;
 
 /**
- * Runs what the learner made and says if it does the job: { right, why, output, walk }. `why` is one
- * plain sentence for a miss (a parse error, the first failing case, the faulty version that got through).
+ * Runs what the learner made and says if it does the job: { right, why, output, walk, said? }. `why` is one
+ * plain sentence for a miss (a parse error, the first failing case, the faulty version that got through); `said`, where
+ * there is one, is the shorter line Fennel says over the missed run (CODE_ENDS), `why` itself otherwise.
  */
 export function grade(item, src) {
   // A function is checked as the hidden tests will call it, so the wrong input label fails too.
@@ -453,7 +458,7 @@ export function optionsOf(item) {
 // ---- proof
 
 /** Every source made by swapping one decoy into one place. */
-function* withDecoy(item) {
+export function* withDecoy(item) {
   const chips = chipsOf(wayOf(item), item.chunks);
   const fills = item.type === 'gap' ? item.fill : null;
   for (const d of item.decoys ?? []) {

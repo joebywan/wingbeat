@@ -210,7 +210,8 @@ block below; the fixes that came out of them are in docs/WINGBEAT.md under "Foun
   Nothing changes at ordinary text or at 1.3. The first-visit list and a follow-on course's waiting tab were looked at at 2.0 too. A verdict is now at least
   as tall as the tray it replaces, so no row of answers shows above it. On the tablet, ⋯ keeps to the bottom of the rail where larger text had pushed it
   out of reach.
-  **Left:** on a 360-wide phone at 2.0 home and the end screens cannot fit even after giving way, so the page scrolls as before.
+  On a 360-wide phone at 2.0 home and the end screens cannot fit even after giving way, so the page scrolls as before: everything can be reached
+  by scrolling (the next lesson's node, Continue, "How do you feel?" and its answers) and nothing stays under a fixed bar (measured, #213).
 - **Answered boards and programs above the verdict: done** (#201). Two things the play for #197 found. At text 2.0 an answered Chess board sat under the
   verdict where the coach's words are long (the board to 461 against a verdict from 393 to 437; five of six plays), since her bubble now keeps its room
   (#192). Once answered, her kept room goes first, then the coach and the gaps, then her face, and only then does the board shrink; while asked nothing
@@ -224,8 +225,8 @@ block below; the fixes that came out of them are in docs/WINGBEAT.md under "Foun
   longer empties the phone runs' pictures: each Playwright config has its own output folder.
   **Left (low):** at text 2.0 an answered board that fits at its small size keeps her empty room above it.
 - **Tablet and landscape leftovers: done** (#205). On a wide screen ⋯ sat over the tab behind it whenever the tabs outgrew the screen: on the tablet at
-  larger text (2.0, and "+ Habit" at 1.3), and at ordinary text in a short wide window. The tabs now scroll in their own box, which ends above ⋯; the
-  shared audit fails a tab under it. The tablet's `app` run passes: its two failing checks measured the wrong thing (the two seconds a screen dump takes
+  larger text (2.0, and "+ Habit" at 1.3), and at ordinary text in a short wide window. The tabs now scroll in their own box, which ends above ⋯ (and since #213
+  fades at an edge where more tabs lie that way); the shared audit fails a tab under it. The tablet's `app` run passes: its two failing checks measured the wrong thing (the two seconds a screen dump takes
   on a big screen were added to the app's start, which is the same 11 s or so on both; and one row of the launcher was taken for an eighth of the screen,
   where it is the launcher's own cell: a row more now has to make the widget about twice as tall). `landscape-all` passes: the garden's first card on
   its side was reachable all along, and the page's own scroll padding (room kept for a fixed bar) had the audit's centring start it above the screen.
@@ -266,7 +267,11 @@ block below; the fixes that came out of them are in docs/WINGBEAT.md under "Foun
     Then (#203): a sentence card keeps the rows it will fill to from the start, its empty slots all one width (it grew a row as it filled, moving the
     tiles); a tap on a coach mid-item says only an aside that fits her bubble as it stands, in every course (a taller one moved the board); a puzzle
     with two stars says "both stars".
-    **Left (low):** the code courses still replace a missed run at once (what it printed is shown, so the miss is not unexplained).
+    Then (#214): the code courses hold a missed run as Coding does, with the one `hold()` both use. The learner's own chips stay with what it printed
+    and Fennel saying what happened (only a line that fits his bubble as it stands, so nothing under it moves), then the way that works takes their
+    place. "It printed" now fades its last line when a run printed more lines than it shows: before, one line too many looked the same as the goal.
+    **Left (low):** the line an error stopped on is not marked (the chips run as one line). On a short phone a Test writing answer box can end
+    mid-chip, asked and held (`tb-1-3` at 412x533; pictures in `wingbeat-wt/notes/codemiss/feedback-small/`).
   - **Fixed** (#191, `npm run phone -- words`): a listening item was answered with advice about looking; every course's coach said its course was done
     today after one lesson of another; end screens overstated ("Plenty of bumps" for one miss in eight); nothing said the Blue Triangle was a butterfly; a
     few lines praised what the learner is. A verdict's words now fit how the item was answered (heard, moved, written, looked at). With Learning done today
@@ -341,7 +346,8 @@ block below; the fixes that came out of them are in docs/WINGBEAT.md under "Foun
   the 🔊 button's content measures a few px wider than its box in Firefox, so "nothing overflows" fails there, though it is drawn whole (low).
   `moving`: once, a value changed while Fennel was between squares (`var-3-free`; seen once, cause not found; low). `words` has not been played
   again in Firefox since its seed was fixed. What `away-bare` checks (a routine paused, quiet and letting the screen sleep after Home) is not
-  checked in Firefox.
+  checked in Firefox. `landscape-all` stops after its first routine there, on a `click` the bridge's locators do not have (the upright line itself
+  shows, #213).
   **What the emulator cannot show:** whether either freeze happens on a phone with a GPU (the emulator draws in software), and haptics (Firefox has none
   to call).
 
@@ -531,13 +537,19 @@ that carry a sound, every one called `speechSynthesis.speak` with its text when 
   and Scramble's clock hold, and upright again everything is where it was (`landscape-all`, all five courses). "On its side" is read from the screen,
   never the page: the keyboard shrinks the page to wider than tall on a common 360-wide phone, and the first version of this took that for a turned phone
   and covered Reflect while typing (caught in review; `KEYBOARD_SMALL=1080x1700 npm run phone -- touch-keyboard` plays it).
-  **Left:** on an iPhone the line never shows (its screen size does not turn with it), so lessons there are as they were, and this cannot be played on the
-  emulator. The garden on its side: its first card was reachable all along, the audit was wrong (#205), and `landscape-all` passes. On a short phone with the
-  keyboard up (a 412x177 page) the field in Make your own, When and Focus sits 15px above the top (low; being fixed with the largest-text work).
+  **An iPhone, and Firefox for Android** (#213): the line never showed on either. The rule wanted a turned screen size, which an iPhone never reports, and
+  a coarse pointer, which Firefox does not report for a touch screen that also takes a stylus (the emulator's is one). It now reads the orientation's angle
+  and the touch points. In Firefox the line was then seen on the emulator. The iPhone is modelled in a browser test, not played: there is no iPhone here and
+  the emulator is not one. The garden on its side: its first card was reachable all along, the audit was wrong (#205), and `landscape-all` passes. On a short
+  phone with the keyboard up (a 412x177 page) every field is wholly in view (Reflect, Make your own, When, Focus; rechecked in #213, and the line that said
+  otherwise was out of date); When's Save button starts 3px under the keyboard and is a scroll away.
   **The tablet:** the runner could not calibrate Chrome on the tablet image at first; it can since #201 (it read the tablet's size as if upright), and
   Reflect on its side with the keyboard up was played there: no upright line, the field and Next clear.
 - **An incoming call** arrives as a banner and the page is never hidden, so a routine and its rain carry on through it; declining or answering leaves a lesson
-  as it was. Whether the rain is heard over the call cannot be told from the emulator.
+  as it was. Measured (#213, `interrupted`): while it rings, once it is answered and after hanging up, Chrome stays in front, the routine's count keeps moving
+  and the rain's stream stays started. Left as it is: a web page is told nothing about a call. Pausing for one would need the rain played as media, which a
+  browser can pause for a call but which also puts up a media notification, or in the app a listener for losing audio focus; neither is built. Whether the
+  rain is heard over the call cannot be told from the emulator.
 - **No network, the live site:** the open page carries on and saves. A reload fails; a new tab loads from the browser's cache for ten minutes and then fails too:
   there is no service worker, so the web app does not open offline. The installed app carries its files and works throughout. **Open (a decision):** whether
   the web app should work offline.

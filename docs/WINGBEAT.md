@@ -304,6 +304,13 @@ chips, because one tap to play or to switch course is worth more than their row.
 - [x] **E27. The answered board under the verdict in Firefox for Android** (#212): at the phone's font size 1.3 the board was
   sized for a taller screen. Firefox widens its viewport while anything is wider than the page, and the board's drawing was,
   for a moment, each time the board was measured. The drawing is held to its board's width.
+- [x] **E28. Small leftovers** (#213): a phone on its side is told by the screen's angle and its touch points, so an iPhone (whose screen size never
+  turns) and Firefox for Android (which calls a touch screen that takes a stylus a fine pointer) show the upright line too; the rail's column of tabs
+  fades at an edge with more past it. Measured and left as they are: a 360-wide phone at the largest text scrolls, with everything in reach; a call,
+  answered or not, never hides the page, so a routine and its rain carry on.
+- [x] **E29. A missed run in the code courses is shown before it is replaced** (#214): the learner's own chips stay for Coding's hold, with what it
+  printed and Fennel saying what happened, then the way that works. One `hold()` for both. A printed line too many is no longer hidden behind a box
+  that looks the same as the goal.
 
 **Waiting on the owner** (found by playing, not changed)
 

@@ -103,7 +103,7 @@ or minimum font size in a desktop browser is `test/e2e/large-text.spec.js`. `tes
   clear of the verdict). **What Firefox does differently:** it
   asks the person before it keeps a site's storage, it follows the phone's font size by zooming the whole page (216px wide at 2.0),
   while anything is wider than the page it widens its viewport, `innerWidth` and `innerHeight` with it (a 324 x 612 page read 351 x 662),
-  and it has no `navigator.vibrate`. What a bridged browser cannot do prints one line there and is not counted: haptics (`checkBuzz`),
+  it calls the emulator's touch screen (which also takes a stylus) a fine pointer, so nothing reads `(pointer: coarse)`, and it has no `navigator.vibrate`. What a bridged browser cannot do prints one line there and is not counted: haptics (`checkBuzz`),
   `attach()`, `page.route`, Chrome's Default zoom and its devtools socket (`app`, `away-bare-app`, `sync`, `zoom`, `away-bare`). Every page
   served carries the bridge; its locators take `hasText`, `>>`, `nth=`, `:visible` and `.and`, and any other option throws. In a plain run
   `persist` comes before `persist-logged`, which then says storage is already kept and checks that nothing is asked.
@@ -178,7 +178,7 @@ or minimum font size in a desktop browser is `test/e2e/large-text.spec.js`. `tes
   item can say (`sayings()`: every line Rosa says mid-item is one constant used by the mount and by `sayings()`), and decides
   `tall` only while asked. `test/e2e/board-still.spec.js` holds the board's top through every move, right and wrong, at three
   sizes. A stars item's `intro` stays with its prompt until the first move; the board is `aria-busy` while a demo plays.
-  A tap on the coach mid-item (`run()` in app.js) says only an aside that fits her bubble as it stands, in every course.
+  A tap on the coach mid-item (`run()` in app.js) says only an aside that fits her bubble as it stands (`fitsBubble()` in fit.js), in every course.
   **Once answered, being in view comes first:** if the board could not sit whole above the verdict even at its answered size (larger
   text keeps tall room for her words), her kept room goes, then `tall`, then `tighter`, and only then the board shrinks
   (`test/e2e/large-text.spec.js` plays three items right and wrong at 125% and 200%).
@@ -304,7 +304,8 @@ or minimum font size in a desktop browser is `test/e2e/large-text.spec.js`. `tes
   the grid, the blocks and the tiles, and Fennel (`src/cast/fennel.js`, a fennec fox posed with
   `rig()`) walks it. His lines are `CODING_LINES`/`CODING_HEADLINES`, read through the subject's
   `coach.lines`/`coach.headlines`. Home's course switcher (shared with Japanese) shows it.
-  **A missed run is shown before it is replaced:** the learner's own program stays for `MISS_HOLD_MS` (2.4 s, or until a tap;
+  **A missed run is shown before it is replaced:** the learner's own program stays for `MISS_HOLD_MS` (`hold()` in feel.js, the one hold Coding and
+  the code courses share: 2.4 s, or until a tap;
   that tap's click never presses the Continue that comes up under it), marked by `markStop()` (`.stopped`, `.unrun`, the
   rock's `.cell.hit`), with Fennel saying `RUN_ENDS[howEnded()]`, one line for each way a run can end. Then the way that
   works takes its place and the reason goes first in the verdict. A rock and the edge are on a card before any item needs them.
@@ -321,7 +322,10 @@ or minimum font size in a desktop browser is `test/e2e/large-text.spec.js`. `tes
   grid and walker Coding also uses; Fennel's calls map to Coding's `run()`, with `onRock(f)` and `onStep(f)` as his events. Courses are data
   in `src/code/courses/` (`author.js` is the shorthand; ids come from a lesson and its place, so add items at a lesson's end). A test checks
   that nothing is asked before a teach card shows it. **Test writing** grades as the rule below says: `given` is the real code, `mutants` hand-made faulty
-  copies with `says` in plain words, and a miss names the one that got through. Guardrails bar "broken" in prose, so they are "faulty copies".
+  copies with `says` in plain words, and a miss names the one that got through. A missed run is held as Coding's is (`hold()` in feel.js): the
+  learner's chips stay with what it printed ("It printed" is a `scrollBox()`, so lines it cannot show are marked), and Fennel says `grade()`'s `said`
+  (`CODE_ENDS` in lines.js, where a Test writing reason is too long for his bubble), else its `why`, and only if `fitsBubble()` (fit.js) says it fits
+  his bubble as it stands; otherwise he keeps the prompt. Then the way that works takes their place, the reason first in the verdict. Guardrails bar "broken" in prose, so they are "faulty copies".
   A value in prose is printed by interp.js's `show(v, false)` (`called()` and `exampleOf()` in items.js): the course's own spelling, never JSON.
 - `src/calm/` — the Calm practice subject. `routines.js` is pure: each routine is a list of timed
   phases (breathing 4 in, 8 out; the sigh 3 in, 1 top-up, 6 out; the butterfly hug's taps; the body scan feet to head), and `timeline()` plays one on a
@@ -375,11 +379,13 @@ or minimum font size in a desktop browser is `test/e2e/large-text.spec.js`. `tes
   it (`hush()` in feel.js, the one rule for when sound rests: the page hidden, or a held routine), so rain never comes back
   before the routine does.
 - **Made for an upright phone** (decision 28). `SIDEWAYS` in `src/fit.js` says a phone is on its side, read from the screen
-  (`screen.orientation`, a short side under 500px, a coarse pointer), never from the page: the keyboard shrinks the page
+  (touch points, `screen.orientation` a landscape type at an angle of 90 or 270, a short side under 500px), never from the page: the keyboard shrinks the page
   (`interactive-widget=resizes-content`, the app's `adjustResize`) to wider than tall on a 360-wide phone. app.js sets
   `html[data-sideways]`; styles.css puts `.upright` (one line, `UPRIGHT`) over `main.play` only, a timed routine and
-  Scramble's clock hold, and turned back everything is where it was. Null where `screen.orientation` is missing, and an
-  iPhone's screen size does not turn, so there it never shows. MainActivity locks the app upright below 600dp.
+  Scramble's clock hold, and turned back everything is where it was. Null where `screen.orientation` is missing. The angle,
+  not a turned screen size (an iPhone's never turns; a desktop browser emulating touch and a tablet held wide report a landscape type at angle 0), and
+  `navigator.maxTouchPoints`, never `(pointer: coarse)` (Firefox for Android calls a touch screen that also takes a stylus fine, `any-pointer` too). The
+  iPhone is modelled in `flows.spec.js`, not played. MainActivity locks the app upright below 600dp.
 - **Calm is not therapy.** `test/guardrails.test.js` bars health claims, diagnosis words and urgency
   in Calm's text, and checks the Lifeline help line (13 11 14, as plain text) is on the first Calm
   lesson and after "Not really".
@@ -461,7 +467,8 @@ or minimum font size in a desktop browser is `test/e2e/large-text.spec.js`. `tes
 - Home lists each habit once: one row of tabs (icon, name, streak coloured by `light()`) that
   scrolls inside itself, with ⋯ (Settings) pinned at its right end. Its edge fades are gradients laid over the row
   (`.tabs-row::before`/`::after`), never a mask. Sound is a switch on the ⋯ screen. On a wide screen the tabs are a column
-  in the rail and scroll in their own box (`.rail .paths`), which ends above ⋯; `misfits()` (test/phone/lib/fits.js) fails a tab under it.
+  in the rail and scroll in their own box (`.rail .paths`, a `scrollBox()` only while it is a column: a phone's row keeps its own side fades and is never
+  one), which ends above ⋯; `misfits()` (test/phone/lib/fits.js) fails a tab under it.
 - `src/fitting.js` — pure: fitting the person from the on-device log (docs/TODO.md "Fitting the
   person"). `usualHours`/`reminderHour` (the log's `hour`s; nothing under five sessions);
   `shouldRemind` thins reminders that are only ever cleared (every other day after 3, every third
