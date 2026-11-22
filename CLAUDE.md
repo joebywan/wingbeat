@@ -178,7 +178,7 @@ or minimum font size in a desktop browser is `test/e2e/large-text.spec.js`. `tes
   item can say (`sayings()`: every line Rosa says mid-item is one constant used by the mount and by `sayings()`), and decides
   `tall` only while asked. `test/e2e/board-still.spec.js` holds the board's top through every move, right and wrong, at three
   sizes. A stars item's `intro` stays with its prompt until the first move; the board is `aria-busy` while a demo plays.
-  A tap on the coach mid-item (`run()` in app.js) says only an aside that fits her bubble as it stands, in every course.
+  A tap on the coach mid-item (`run()` in app.js) says only an aside that fits her bubble as it stands (`fitsBubble()` in fit.js), in every course.
   **Once answered, being in view comes first:** if the board could not sit whole above the verdict even at its answered size (larger
   text keeps tall room for her words), her kept room goes, then `tall`, then `tighter`, and only then the board shrinks
   (`test/e2e/large-text.spec.js` plays three items right and wrong at 125% and 200%).
@@ -304,7 +304,8 @@ or minimum font size in a desktop browser is `test/e2e/large-text.spec.js`. `tes
   the grid, the blocks and the tiles, and Fennel (`src/cast/fennel.js`, a fennec fox posed with
   `rig()`) walks it. His lines are `CODING_LINES`/`CODING_HEADLINES`, read through the subject's
   `coach.lines`/`coach.headlines`. Home's course switcher (shared with Japanese) shows it.
-  **A missed run is shown before it is replaced:** the learner's own program stays for `MISS_HOLD_MS` (2.4 s, or until a tap;
+  **A missed run is shown before it is replaced:** the learner's own program stays for `MISS_HOLD_MS` (`hold()` in feel.js, the one hold Coding and
+  the code courses share: 2.4 s, or until a tap;
   that tap's click never presses the Continue that comes up under it), marked by `markStop()` (`.stopped`, `.unrun`, the
   rock's `.cell.hit`), with Fennel saying `RUN_ENDS[howEnded()]`, one line for each way a run can end. Then the way that
   works takes its place and the reason goes first in the verdict. A rock and the edge are on a card before any item needs them.
@@ -321,7 +322,10 @@ or minimum font size in a desktop browser is `test/e2e/large-text.spec.js`. `tes
   grid and walker Coding also uses; Fennel's calls map to Coding's `run()`, with `onRock(f)` and `onStep(f)` as his events. Courses are data
   in `src/code/courses/` (`author.js` is the shorthand; ids come from a lesson and its place, so add items at a lesson's end). A test checks
   that nothing is asked before a teach card shows it. **Test writing** grades as the rule below says: `given` is the real code, `mutants` hand-made faulty
-  copies with `says` in plain words, and a miss names the one that got through. Guardrails bar "broken" in prose, so they are "faulty copies".
+  copies with `says` in plain words, and a miss names the one that got through. A missed run is held as Coding's is (`hold()` in feel.js): the
+  learner's chips stay with what it printed ("It printed" is a `scrollBox()`, so lines it cannot show are marked), and Fennel says `grade()`'s `said`
+  (`CODE_ENDS` in lines.js, where a Test writing reason is too long for his bubble), else its `why`, and only if `fitsBubble()` (fit.js) says it fits
+  his bubble as it stands; otherwise he keeps the prompt. Then the way that works takes their place, the reason first in the verdict. Guardrails bar "broken" in prose, so they are "faulty copies".
   A value in prose is printed by interp.js's `show(v, false)` (`called()` and `exampleOf()` in items.js): the course's own spelling, never JSON.
 - `src/calm/` — the Calm practice subject. `routines.js` is pure: each routine is a list of timed
   phases (breathing 4 in, 8 out; the sigh 3 in, 1 top-up, 6 out; the butterfly hug's taps; the body scan feet to head), and `timeline()` plays one on a
