@@ -130,7 +130,7 @@ export function mount(el, item, ctx) {
   share(item.type === 'gap');
   fit(withOut(item, item.explain)); // room above the verdict to come, kept for the answer as it is built
   // Past the tray, an answer scrolls inside its own space, so neither moves: one laid out from nothing, or a gap filled longer.
-  if (!programEl.style.maxHeight) boxTo(programEl, foot.getBoundingClientRect().top, true);
+  if (!programEl.style.maxHeight) boxTo(programEl, foot.getBoundingClientRect().top, true, true);
   runEl.addEventListener('click', async () => {
     runEl.disabled = true;
     board.lock();

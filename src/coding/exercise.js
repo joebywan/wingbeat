@@ -3,7 +3,7 @@ import { builder, thumbTargets } from '../builder.js';
 import { gridHtml, walkerOn } from './grid.js';
 import { dragTile } from '../drag.js';
 import { flourish, hold, play } from '../feel.js';
-import { fitter, scrollBox } from '../fit.js';
+import { boxTo, fitter } from '../fit.js';
 import { esc } from '../html.js';
 import { RUN_ENDS } from '../cast/lines.js';
 
@@ -115,8 +115,7 @@ export function mount(el, item, { say, done, coach }) {
     });
     tilesEl.append(runEl);
     // A long answer scrolls inside the space between the map and the tray, so neither moves.
-    programEl.style.maxHeight = `${tilesEl.getBoundingClientRect().top - programEl.getBoundingClientRect().top - 8}px`;
-    scrollBox(programEl);
+    boxTo(programEl, tilesEl.getBoundingClientRect().top, true, true);
     runEl.addEventListener('click', async () => {
       runEl.disabled = true;
       board.lock();

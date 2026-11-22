@@ -56,6 +56,11 @@ for (const [width, height] of [[360, 582], [360, 640], [375, 812]]) test(`every 
         if (rect.bottom > innerHeight + 1) note('the tray runs off the screen');
         if (tiles.querySelector('.run').getBoundingClientRect().bottom > innerHeight + 1) note('Run is off the screen');
         for (const c of tiles.querySelectorAll('[data-chip]')) if (c.getBoundingClientRect().height < 40 || c.scrollWidth > c.clientWidth + 1) note(`chip ${c.textContent} is cramped`);
+        // Asked, a box that scrolls ends on a whole row (boxTo in src/fit.js): never across a chip, a gap or a line of the code,
+        // but a gap still to fill, which stays there in part rather than go.
+        const box = app.querySelector('.program'), end = box.getBoundingClientRect().top + box.clientHeight;
+        const across = [...box.querySelectorAll('.answer :is(button, .hole, .fixed-word)')].filter((e) => e.getBoundingClientRect().top < end - 1 && e.getBoundingClientRect().bottom > end + 1);
+        if (across.length && !across.some((e) => e.matches('.hole'))) note(`the answer's box ends across a row: ${across.map((e) => `${e.textContent || 'a gap'} (${Math.round(end - e.getBoundingClientRect().top)} of ${Math.round(e.getBoundingClientRect().height)}px)`).join(', ')}`);
         const words = item.type === 'gap' ? item.fill : chipsOf(wayOf(item), item.chunks);
         for (const w of words) [...tiles.querySelectorAll('[data-chip]')].find((c) => c.textContent === w).click();
         const prog = app.querySelector('.program');
@@ -307,6 +312,26 @@ for (const m of MISSES) {
     expect((await tops()).slice(0, 4), 'the way replacing it moves nothing above the verdict').toEqual(asked.slice(0, 4));
   });
 }
+// On a short phone (412x533) Test writing's answer box ended 7px into the row being filled, asked and while a missed run was
+// held, that row under the box's fade. The tray draws a gap of its own, so the box gives up its 8px gap above the tray and
+// ends on that row (boxTo in src/fit.js).
+test('at 412x533, a Test writing answer box ends on the whole row being filled, asked and held', async ({ page }) => {
+  await page.setViewportSize({ width: 412, height: 533 });
+  const m = MISSES[1];
+  const item = await reach(page, m.course, m.lesson, m.id);
+  const row = (sel) => page.evaluate((sel) => {
+    const box = document.querySelector('.code-program');
+    return { end: box.getBoundingClientRect().top + box.clientHeight, bottom: box.querySelector(sel).getBoundingClientRect().bottom, tray: document.querySelector('.code-tray').getBoundingClientRect().top };
+  }, sel);
+  const asked = await row('.hole');
+  expect(asked.bottom, 'asked, the gap to fill shows whole').toBeLessThanOrEqual(asked.end + 0.5);
+  expect(asked.end, 'the box ends above the tray').toBeLessThanOrEqual(asked.tray);
+  await chip(page, m.decoy).click();
+  await page.getByRole('button', { name: 'Run', exact: true }).click();
+  await expect(page.locator('#said')).toHaveText(grade(item, item.code.replace('___', m.decoy)).said); // the hold
+  const held = await row('[data-take]');
+  expect(held.bottom, 'held, the chip placed shows whole').toBeLessThanOrEqual(held.end + 0.5);
+});
 test("a click during a code course's missed run's hold goes straight to the way that works, and does not press the Continue that comes under it", ({ page }) => tapDuringHold(page, false, missed(MISSES[0])));
 test.describe('with a finger', () => {
   test.use({ hasTouch: true, isMobile: true });
