@@ -279,7 +279,8 @@ block below; the fixes that came out of them are in docs/WINGBEAT.md under "Foun
     opens with its first gap in view, the box scrolled to it at once where it has to be, and the next gap after each fill. Before, on a 412x533 page 32
     of the code courses' answer boxes ended across a row (11 at 360x582) and the first gap was cut or out of sight in 19 of 140 fill-in items (8 at
     360x582, an ordinary phone's page); now none. **Left (low):** answered, a box scrolled to the chip that matters shows 3 to 4px of the next row, and
-    the way that works after a miss ends a few px into its last line.
+    the way that works after a miss ends a few px into its last line. The box of code under test shows the top few px of its next line under its
+    fade (`tb-1-7`, `tb-2-5` on a short phone).
   - **Fixed** (#191, `npm run phone -- words`): a listening item was answered with advice about looking; every course's coach said its course was done
     today after one lesson of another; end screens overstated ("Plenty of bumps" for one miss in eight); nothing said the Blue Triangle was a butterfly; a
     few lines praised what the learner is. A verdict's words now fit how the item was answered (heard, moved, written, looked at). With Learning done today
