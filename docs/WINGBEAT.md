@@ -311,6 +311,12 @@ chips, because one tap to play or to switch course is worth more than their row.
 - [x] **E29. A missed run in the code courses is shown before it is replaced** (#214): the learner's own chips stay for Coding's hold, with what it
   printed and Fennel saying what happened, then the way that works. One `hold()` for both. A printed line too many is no longer hidden behind a box
   that looks the same as the goal.
+- [x] **E30. An answered board at larger text** (#215): once answered, the coach says a short line in a bubble kept lines tall, and the board was made
+  small under it (about 150px at 200%). At larger text her empty room now goes first, so the board stays as large as the screen allows; at ordinary
+  text nothing changes and the board's top stays put.
+- [x] **E31. Quiz cards, to the fraction of a pixel** (#216): a verdict at half the screen whose words ran 1.35px past their box did not give way,
+  because the overflow was read in whole pixels (Firefox for Android at font size 2.0); a sentence card kept an empty row on a short phone, its rows
+  counted before the card tightened; and the 🔊 button's "overflow" in Firefox was the check reading an inline box.
 
 **Waiting on the owner** (found by playing, not changed)
 

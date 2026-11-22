@@ -64,13 +64,34 @@ test.describe('at 412x533', () => {
     expect(bars.length, item.id).toBe(3);
     expect(Math.max(...bars)).toBeLessThanOrEqual((await rect(page, '.foot.show')).top);
   });
+
+  // Firefox for Android at font size 2.0 (a 216px page): 109.05px of words in a 107.7px box, which scrollHeight and
+  // clientHeight round to 109 and 108, so the verdict did not give way and the explanation's last 1.35px went past its box.
+  test('a verdict a pixel and a bit past half the screen gives way, so its words end in its box', async ({ page }) => {
+    await reach(page, 'japanese', 'v1', 'v1-pick-3');
+    await page.locator('.quiz .choices .choice').filter({ hasText: /^a$/ }).click();
+    await expect(page.locator('.foot.show')).toHaveCSS('transform', 'none');
+    const past = await page.evaluate(async () => {
+      const { giveWay } = await import('/src/fit.js');
+      const foot = document.querySelector('.foot.show'), box = foot.querySelector('.verdict');
+      foot.querySelector('strong').textContent = 'Right. I am standing on my back legs about it, and on my front legs, and on my tail too.';
+      giveWay(foot);
+      foot.style.maxHeight = `${foot.getBoundingClientRect().height - 1.35}px`; // half the screen, 1.35px short of the words
+      giveWay(foot);
+      box.scrollTop = box.scrollHeight;
+      return box.querySelector('p').getBoundingClientRect().bottom - box.getBoundingClientRect().bottom;
+    });
+    expect(past, 'px of the explanation past the end of its box').toBeLessThanOrEqual(0.1);
+  });
 });
 
-test.describe('at 360x640', () => {
-  test.use({ viewport: { width: 360, height: 640 } });
+// What is under the slots (the tray) stays where it was as the slots fill: a filled word may not make a row of its own,
+// and no row is kept that they never fill (counted once the card has tightened: at 412x533 se1-build-321's tighter slots
+// fill one row, not the two its full-size slots would).
+for (const [width, height, builds] of [[360, 640, [['se1', 'se1-build-319'], ['se3', 'se3-build-332']]], [412, 533, [['se1', 'se1-build-321'], ['se3', 'se3-build-332']]]]) test.describe(`at ${width}x${height}`, () => {
+  test.use({ viewport: { width, height } });
 
-  // What is under the slots (the tray) stays where it was as the slots fill: a filled word may not make a row of its own.
-  for (const [lesson, id] of [['se1', 'se1-build-319'], ['se3', 'se3-build-332']]) {
+  for (const [lesson, id] of builds) {
     test(`a sentence's slots keep their height as they fill (${id})`, async ({ page }) => {
       const item = await reach(page, 'japanese', lesson, id);
       const slots = page.locator('.quiz .slots');
@@ -81,6 +102,8 @@ test.describe('at 360x640', () => {
       expect((await slots.boundingBox()).height, 'one slot still empty').toBe(asked);
       await page.locator('.quiz .choices .choice:not(:disabled)').first().click();
       expect((await slots.boundingBox()).height, 'every slot filled').toBe(asked);
+      const rows = await slots.evaluate((s) => { const all = [...s.querySelectorAll('.slot')].map((e) => e.getBoundingClientRect()); return Math.max(...all.map((r) => r.bottom)) - Math.min(...all.map((r) => r.top)); });
+      expect(asked - rows, 'no empty row kept under the filled slots').toBeLessThan(1);
     });
   }
 });

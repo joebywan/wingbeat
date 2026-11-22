@@ -223,7 +223,11 @@ block below; the fixes that came out of them are in docs/WINGBEAT.md under "Foun
   **Tablet runs work again:** the runner read the tablet's size upright while it runs on its side, so its calibration tap missed the page. Played on the
   tablet since: ⋯ at text 2.0 (home fits), and Reflect on its side with the keyboard up (no upright line, the field and Next clear). A browser suite no
   longer empties the phone runs' pictures: each Playwright config has its own output folder.
-  **Left (low):** at text 2.0 an answered board that fits at its small size keeps her empty room above it.
+  Then (#215): at larger text an answered board gets her empty room before it is made small. Her bubble keeps the room of her longest line while an
+  item is played; once answered she says a short one, and at 2.0 that left a board about 150px wide under a tall, nearly empty bubble (about 210px now,
+  on a 412x786 page). At larger text the board therefore moves up as the verdict comes; at ordinary text nothing changes and its top stays put.
+  **Left (low):** at 2.0 on a 360x640 page a true/false's board ends about 54px under the verdict and scrolls clear of it: her bubble keeps the claim
+  the explanation is about, and everything else has given way.
 - **Tablet and landscape leftovers: done** (#205). On a wide screen ⋯ sat over the tab behind it whenever the tabs outgrew the screen: on the tablet at
   larger text (2.0, and "+ Habit" at 1.3), and at ordinary text in a short wide window. The tabs now scroll in their own box, which ends above ⋯ (and since #213
   fades at an edge where more tabs lie that way); the shared audit fails a tab under it. The tablet's `app` run passes: its two failing checks measured the wrong thing (the two seconds a screen dump takes
@@ -342,9 +346,15 @@ block below; the fixes that came out of them are in docs/WINGBEAT.md under "Foun
   board being played crept wider than the page. The drawing is now held to its board's width. `large-text.spec.js` models that viewport in both
   browsers, and `text` passes in Firefox at 1.3. At 2.0 (216px, past what the app promises) the board keeps its smallest size and scrolls clear
   of the verdict, which is all `text` asks under 320px.
-  **Left:** `text` at 2.0: in two runs of three the end of Japanese's answered explanation was 1px out of reach (low). `japanese`:
-  the 🔊 button's content measures a few px wider than its box in Firefox, so "nothing overflows" fails there, though it is drawn whole (low).
-  `moving`: once, a value changed while Fennel was between squares (`var-3-free`; seen once, cause not found; low). `words` has not been played
+  **`text` at 2.0 and the 🔊 check: done** (#216). The pixel out of reach was real. With a three-line headline the verdict was at half the screen
+  with 109.05px of words in a 107.7px box; `scrollHeight` and `clientHeight` are whole numbers and read 109 against 108, so the verdict did not give
+  way and the explanation's last 1.35px ran past its box. `giveWay()` now measures to the fraction of a pixel, so that headline is held to two lines
+  there, as the rule says; `text` at 2.0 passed three runs of three. The 🔊 button never overflowed (44 of 44px in both browsers): the check was
+  reading its inline span, whose `clientWidth` is 0 by the spec and to which Firefox gives a `scrollWidth`. `japanese` passes in Firefox.
+  **A build's kept rows: done** (#216). The rows a sentence's slots keep were counted at mount, before the card tightened, so on a short phone five of
+  the first-sentence unit's nine builds kept an empty row, and `se3-build-332`'s card scrolled with its meaning cut off. They are counted once the
+  card is fitted.
+  **Left:**   `moving`: once, a value changed while Fennel was between squares (`var-3-free`; seen once, cause not found; low). `words` has not been played
   again in Firefox since its seed was fixed. What `away-bare` checks (a routine paused, quiet and letting the screen sleep after Home) is not
   checked in Firefox. `landscape-all` stops after its first routine there, on a `click` the bridge's locators do not have (the upright line itself
   shows, #213).
@@ -513,7 +523,9 @@ that carry a sound, every one called `speechSynthesis.speak` with its text when 
 - **Long romaji options cut off: fixed.** A pick's options wrap onto another row when they don't fit side by side, each at full size, in `styles.css` (`.quiz-pick`), for every pick in Japanese and Maths. All 11 units played again at 412x786 with nothing off the side or clipped.
 - **Sentence builds on a short phone: fixed.** At 412x533 the slots sit above the tray while building and above the verdict once answered (`se1` to `se3` and their checkpoint played again at 412x533). The card gives up its spare room, then the coach shrinks, then the slots and the sentence above them; if that were not enough, pictures shrink, then the card scrolls in its own box.
 - **Empty build slots: fixed.** An empty slot is an outlined dashed box the height of a tile (as the Coding builder's), solid once filled.
-- **Matched pairs go under the verdict** (low, left as it is). A 5-pair item has 5 rows; once answered the verdict hides the lower rows, so the last matches turning green are not seen.
+- **Matched pairs go under the verdict** (low, left as it is). The pairs are the tray, and a verdict is never shorter than the tray it replaces, so once
+  the last pair is matched the verdict covers them: all five rows of `gn-pairs-315` at 412x786, and all but the first at 412x533 (measured again in
+  #216). The explanation names every pair. Showing them above the verdict would mean a tray that moves once answered: a design choice, not made.
 - **Typo fixed:** the explanations of `se1-pairs-323`, `se2-pairs-330` and `se3-pairs-337` read "This is a cat., ..." and ended "tea..". No other content problem found.
 - **Firefox for Android:** its first lesson was played there (#181), the listening item with a Japanese voice. **What the emulator cannot show:** a voice other than the image's own Google ja-JP one (no other speech engine is on it).
 
