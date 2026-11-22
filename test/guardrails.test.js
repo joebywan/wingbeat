@@ -403,7 +403,7 @@ test('the timings screen makes no claims, never hurries and never pushes', () =>
 
 // Coding: Fennel's lines and the course's words get the same lint as Rosa's, and his lines cover
 // every kind a learn session and its end screen ask for.
-import { CODE_HEADLINES, CODE_LINES, CODING_HEADLINES, CODING_LINES, RUN_ENDS } from '../src/cast/lines.js';
+import { CODE_ENDS, CODE_HEADLINES, CODE_LINES, CODING_HEADLINES, CODING_LINES, RUN_ENDS } from '../src/cast/lines.js';
 import codingCourse from '../src/data/coding.json' with { type: 'json' };
 
 test("Fennel's lines and the Coding course pass the lint, and cover every kind a lesson uses", () => {
@@ -426,7 +426,7 @@ test("Fennel's lines and the Coding course pass the lint, and cover every kind a
 test('the code courses and their lines pass the lint, and cover every kind a lesson uses', () => {
   const courses = subjects.filter((s) => s.mount === subjects.find((x) => x.id === 'javascript').mount);
   assert.equal(courses.length, 3);
-  const lineText = [CODE_LINES, CODE_HEADLINES].flatMap((all) => Object.values(all).flat());
+  const lineText = [CODE_LINES, CODE_HEADLINES, CODE_ENDS].flatMap((all) => Object.values(all).flat());
   // Code in the items is not prose: `is` the words a person reads.
   const words = (item) => [item.text, item.prompt, item.explain, ...(item.mutants ?? []).map((m) => m.says)].filter(Boolean);
   const text = [...lineText, ...courses.flatMap((c) => c.units.flatMap((u) => u.lessons.flatMap((l) => l.items.flatMap(words))))];

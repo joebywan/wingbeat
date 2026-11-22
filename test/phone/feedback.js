@@ -1,13 +1,16 @@
 // What a beginner meets when a step goes wrong, played by real touch: Coding's "Around the rock" walked into the rock on
 // purpose (the card that shows it first, then a burst of shots while Fennel's own run fails and the way that works
 // replaces it), Chess's "Rook and bishop" (the board's top held through every stars move, the bishop's introduction
-// kept until the first move) and a Maths build missed on purpose (what was put, shown back).
+// kept until the first move), a Maths build missed on purpose (what was put, shown back), and a code course's run missed
+// on purpose in JavaScript and in Test writing (the learner's own code held with what it did, then the way that works).
 // FEEDBACK_SMALL=1080x1700 plays it on a short phone.
 import { readFileSync } from 'node:fs';
 import { subjects } from '../../src/subjects.js';
 import { answer as tapsOf, kind as chessKind } from '../../src/chess/items.js';
 import { answer as mathsAnswer, right as mathsRight, toQuiz } from '../../src/maths/items.js';
 import { RUN_ENDS } from '../../src/cast/lines.js';
+import { grade } from '../../src/code/items.js';
+import { chipName } from '../../src/code/exercise.js';
 import { movesOf, onShortPhone, promote, square, tapMove } from './lib/chess.js';
 
 const coding = JSON.parse(readFileSync(new URL('../../src/data/coding.json', import.meta.url))).units[0];
@@ -121,9 +124,57 @@ async function sums(h) {
   }
 }
 
+/**
+ * A code course's run missed on purpose: `decoy` in the gap of item `id`, the first after its lesson's teach cards. A burst
+ * of shots while the learner's own code is held with what it did and Fennel's line, then the way that works; nothing on
+ * the screen above the verdict moves.
+ */
+async function codeMiss(h, course, lessonId, id, decoy) {
+  const { page, touch, btn, shot, run, seed, check } = h;
+  const s = subjects.find((x) => x.id === course);
+  const all = s.units.flatMap((u) => u.lessons);
+  const lesson = all.find((l) => l.id === lessonId);
+  const item = lesson.items.find((i) => i.id === id);
+  const { why, said = why } = grade(item, item.code.replace('___', decoy));
+  // Every lesson before it done; a course that follows another, as by someone who chose to start here.
+  await seed({ done: Object.fromEntries(all.slice(0, all.indexOf(lesson)).map((l) => [`${course}:${l.id}`, true])), ...(s.follows && { start: { [course]: s.units[0].title } }) });
+  await touch(page.locator(`[data-course="${course}"]`));
+  await touch(btn(`Continue · ${lesson.title}`));
+  for (const i of lesson.items.slice(0, lesson.items.indexOf(item))) { await run(500); await touch(btn('Continue', { exact: true })); check(`${i.id} is a teach card`, i.type === 'teach'); }
+  await run(500);
+  await touch(page.locator('.tiles').getByRole('button', { name: chipName(decoy), exact: true }));
+  await shot(`${course}-asked`);
+  const tops = () => page.evaluate(() => ['.bubble', '.code-goal', '.code-given', '.code-program'].map((q) => Math.round(document.querySelector(q)?.getBoundingClientRect().top ?? -1)));
+  const asked = await tops();
+  await touch(btn('Run', { exact: true }));
+  const seen = [];
+  for (let i = 0; i < 3; i++) {
+    await shot(`${course}-miss-${i}`);
+    if (i === 0) {
+      check(`${course}: their own code stays, with Fennel's line (${await page.locator('#said').textContent()})`, (await page.locator('#said').textContent()) === said
+        && (await page.locator('.code-program').textContent()).includes(decoy) && await page.locator('.program.shown').count() === 0 && await page.locator('.foot.show').count() === 0);
+      seen.push(await tops());
+      const out = await page.evaluate(() => { const o = document.querySelector('.code-out'); return o && { more: o.classList.contains('more-below'), over: o.textContent.split('\n').length > document.querySelector('.code-goal code').textContent.split('\n').length }; });
+      if (out) check(`${course}: "It printed" marks lines it cannot show only when there are some (${JSON.stringify(out)})`, out.more === out.over);
+    }
+    await run(600);
+  }
+  await run(1500);
+  await shot(`${course}-miss-way`);
+  seen.push(await tops());
+  check(`${course}: the way that works comes after, the reason first in the verdict`, await page.locator('.program.shown').count() === 1
+    && (await page.locator('#said').textContent()) === RUN_ENDS.way && (await page.locator('.foot.show p').textContent()).startsWith(why));
+  check(`${course}: nothing above the verdict moves (${JSON.stringify(asked)} then ${seen.map((t) => JSON.stringify(t)).join(', ')})`, seen.every((t) => t.every((y, n) => Math.abs(y - asked[n]) <= 1)));
+  await touch(btn('Quit lesson'));
+}
+
 export default async (h) => {
   await h.page.addInitScript(() => { window.WINGBEAT_PLAIN = true; }); // the lessons as written: no warm-ups to answer
-  const all = async () => { await rock(h); await stars(h); await sums(h); };
+  const all = async () => {
+    await rock(h); await stars(h); await sums(h);
+    await codeMiss(h, 'javascript', 'jsl-1', 'jsl-1-3', '3');
+    await codeMiss(h, 'testing', 'tb-1', 'tb-1-3', 'expect(add(2, 2)).toBe(4)');
+  };
   if (process.env.FEEDBACK_SMALL) await onShortPhone(h, process.env.FEEDBACK_SMALL, all);
   else await all();
 };

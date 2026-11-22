@@ -1,5 +1,6 @@
-import { test, expect } from './fixtures.js';
-import { chipsOf, optionsOf, vary, wayOf } from '../../src/code/items.js';
+import { test, expect, reach, tapDuringHold } from './fixtures.js';
+import { chipsOf, grade, optionsOf, vary, wayOf, withDecoy } from '../../src/code/items.js';
+import { RUN_ENDS } from '../../src/cast/lines.js';
 import { chipName } from '../../src/code/exercise.js';
 import javascript from '../../src/code/courses/javascript.js';
 import typescript from '../../src/code/courses/typescript.js';
@@ -36,12 +37,14 @@ for (const [width, height] of [[360, 582], [360, 640], [375, 812]]) test(`every 
   const random = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
   // Shipped items, and a fresh version of each: new names can run longer.
   const items = [...all, ...all.map((i) => vary(i, random)).filter(Boolean)];
-  const bad = await page.evaluate(async (items) => {
+  // What Fennel says over a missed run (one decoy swapped in), while the answer stays: it must fit his bubble too.
+  const misses = items.map((item) => (item.type !== 'build' && item.type !== 'gap' ? [] : [...new Set([...withDecoy(item)].map(({ src }) => grade(item, src)).filter((r) => !r.right).map((r) => r.said ?? r.why))]));
+  const bad = await page.evaluate(async ([items, misses]) => {
     const { mount } = await import('/src/code/exercise.js');
     const { chipsOf, wayOf } = await import('/src/code/items.js');
     const app = document.getElementById('app');
     const out = [];
-    for (const item of items) {
+    for (const [n, item] of items.entries()) {
       app.innerHTML = `<header class="bar" style="height:44px"></header><main class="play"><p class="topic">Topic</p>
         <div class="coach"><button class="who"></button><p class="bubble"></p></div><div class="stage"></div></main>`;
       const bubble = app.querySelector('.bubble');
@@ -75,13 +78,17 @@ for (const [width, height] of [[360, 582], [360, 640], [375, 812]]) test(`every 
       }
       const reserved = parseFloat(getComputedStyle(bubble).minHeight);
       if (item.prompt && bubble.offsetHeight > reserved + 1) note(`the prompt outgrows the bubble: ${bubble.offsetHeight} over ${reserved}`);
+      for (const line of misses[n]) {
+        bubble.textContent = line;
+        if (bubble.offsetHeight > reserved + 1) note(`a miss outgrows the bubble: ${bubble.offsetHeight} over ${reserved}: ${line}`);
+      }
       if (document.documentElement.scrollWidth > innerWidth) note(`sideways ${document.documentElement.scrollWidth - innerWidth}`);
       // Code to read never runs off the side of its box (Test writing's first card once did): a long line wraps.
       for (const box of app.querySelectorAll('.quiz .card .glyph, .code-given')) if (box.scrollWidth > box.clientWidth + 1) note(`code runs ${box.scrollWidth - box.clientWidth}px off the side of its box`);
       stop?.();
     }
     return out;
-  }, items);
+  }, [items, misses]);
   expect(bad).toEqual([]);
 });
 
@@ -258,3 +265,50 @@ for (const [course, id] of [[javascript, 'jsv-1'], [javascript, 'jsl-1'], [javas
     await expect(page.getByText(`${marked} of ${marked} right first try`)).toBeVisible();
   });
 }
+
+// A missed run is shown before it is replaced, as in Coding (hold() in src/feel.js): the learner's own code stays, with
+// what it printed and Fennel saying what happened (here which faulty version got through), and nothing on the screen moves;
+// then the way that works takes its place, the reason first in the verdict.
+const MISSES = [
+  { course: 'javascript', lesson: 'jsl-1', id: 'jsl-1-3', decoy: '3', printed: 'hop\nhop\nhop' },
+  { course: 'testing', lesson: 'tb-1', id: 'tb-1-3', decoy: 'expect(add(2, 2)).toBe(4)' },
+];
+/** Plays `m`'s item with its decoy in the gap and presses Run. Returns what Fennel says over the miss. */
+const missed = (m) => async (page) => {
+  const item = await reach(page, m.course, m.lesson, m.id);
+  await chip(page, m.decoy).click();
+  await page.getByRole('button', { name: 'Run', exact: true }).click();
+  const r = grade(item, item.code.replace('___', m.decoy));
+  expect(r.right).toBe(false);
+  return r.said ?? r.why;
+};
+for (const m of MISSES) {
+  test(`${m.course}: a missed run keeps the learner's own code and what it did on screen, then the way that works replaces it, and nothing moves`, async ({ page }) => {
+    const item = await reach(page, m.course, m.lesson, m.id);
+    const { why, said = why } = grade(item, item.code.replace('___', m.decoy));
+    await chip(page, m.decoy).click();
+    const tops = () => page.evaluate(() => ['.bubble', '.code-goal', '.code-given', '.code-program', '.code-tray'].map((s) => document.querySelector(s)?.getBoundingClientRect().top ?? null));
+    const asked = await tops();
+    await page.getByRole('button', { name: 'Run', exact: true }).click();
+    // The hold: their own code, what it printed, Fennel's line; no way that works and no verdict yet.
+    await expect(page.locator('#said')).toHaveText(said);
+    await expect(page.locator('.code-program')).toContainText(m.decoy);
+    if (m.printed) await expect(page.locator('.code-out')).toHaveText(m.printed);
+    await expect(page.locator('.program.shown')).toHaveCount(0);
+    await expect(page.locator('.foot.show')).toHaveCount(0);
+    expect(await tops(), 'the hold moves nothing').toEqual(asked);
+    // Then the way that works takes its place, the reason first in the verdict.
+    await expect(page.locator('.program.shown')).toBeVisible({ timeout: 6000 });
+    await expect(page.locator('.code-program')).not.toContainText(m.decoy);
+    await expect(page.locator('#said')).toHaveText(RUN_ENDS.way);
+    await expect(page.locator('.foot.wrong')).toBeVisible();
+    expect((await page.locator('.foot.wrong p').textContent()).startsWith(`${why} `), 'the reason comes first in the verdict').toBe(true);
+    if (m.printed) await expect(page.locator('.code-out')).toHaveText(m.printed);
+    expect((await tops()).slice(0, 4), 'the way replacing it moves nothing above the verdict').toEqual(asked.slice(0, 4));
+  });
+}
+test("a click during a code course's missed run's hold goes straight to the way that works, and does not press the Continue that comes under it", ({ page }) => tapDuringHold(page, false, missed(MISSES[0])));
+test.describe('with a finger', () => {
+  test.use({ hasTouch: true, isMobile: true });
+  test("a touch during a code course's missed run's hold does the same", ({ page }) => tapDuringHold(page, true, missed(MISSES[1])));
+});

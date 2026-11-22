@@ -120,6 +120,32 @@ const MOTIONS = {
 /** Plays one of MOTIONS on `el`, skipped under reduced motion. */
 export const flourish = (el, name) => move(el, ...MOTIONS[name]);
 
+export const MISS_HOLD_MS = 2400; // a missed run's own program stays up, with what it did, this long before the way that works replaces it
+/**
+ * A missed run's hold (Coding and the code courses): waits MISS_HOLD_MS, or until the first tap anywhere. That tap ends
+ * the wait, and its click never presses what comes up under the finger (the verdict's Continue). A tap on something
+ * that was already there (✕) still does its job. The promise's `end()` ends it early, as a tap does (an item left).
+ */
+export function hold() {
+  let end;
+  const held = new Promise((resolve) => {
+    const swallow = (e) => { if (e.target.closest?.('.foot')) { e.preventDefault(); e.stopPropagation(); } };
+    end = (e) => {
+      clearTimeout(timer);
+      removeEventListener('pointerdown', end, true);
+      if (e?.type === 'pointerdown') {
+        addEventListener('click', swallow, { capture: true, once: true });
+        setTimeout(() => removeEventListener('click', swallow, true), 700);
+      }
+      resolve();
+    };
+    const timer = setTimeout(end, MISS_HOLD_MS);
+    addEventListener('pointerdown', end, true);
+  });
+  held.end = end;
+  return held;
+}
+
 /**
  * Petals and leaves drifting down over a finished lesson: the garden's confetti. About 2.6 s,
  * stopped early by the returned function, skipped under reduced motion. Never takes a tap.
