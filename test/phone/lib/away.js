@@ -27,13 +27,15 @@ export default async function away(h, { pkg = h.pkg ?? 'com.android.chrome', dir
     for (const [how, leave] of [['home', (d) => putDown(h, AWAY, d, pkg)], ['screen-off', (d) => screenOff(h, AWAY, d)]]) {
       const before = await stateOf(page);
       await shot(`${name}-${how}-before`);
-      let hid;
-      await leave(async () => { hid = playing(); });
+      // The stream just before leaving (the last sound was seconds ago) and each second away: one left open while
+      // nothing plays shows the same before as after; one that stops partway is the page going quiet as it hides.
+      const hid = [playing()];
+      await leave(async () => { for (let i = 0; i < 6; i++) { hid.push(playing()); await sleep(1000); } });
       await shot(`${name}-${how}-after`);
       const after = await stateOf(page);
       check(`${name}, ${how}: the lesson is where it was (same screen text)`, same(before, after), same(before, after) ? '' : diff(before.text, after.text));
       check(`${name}, ${how}: the saved progress is untouched`, before.saved === after.saved);
-      say(`${name}, ${how}: page hidden afterwards? ${after.hidden}; sound while away: ${JSON.stringify(hid)}`);
+      say(`${name}, ${how}: page hidden afterwards? ${after.hidden}; stream (started/active track) before leaving, then each second away: ${hid.map((s) => `${+s.started}/${+s.track}`).join(' ')}`);
     }
     await finish();
   };

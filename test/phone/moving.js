@@ -19,12 +19,14 @@ const trace = (page) => page.evaluate(() => {
   const walker = world?.querySelector('.walker');
   if (!walker) return;
   const frame = window.__frame ?? requestAnimationFrame;
-  const first = world.querySelector('.cell')?.getBoundingClientRect().width || 1;
+  const cell = world.querySelector('.cell');
   let last = '';
   (function loop() {
-    const w = walker.getBoundingClientRect(), g = world.getBoundingClientRect();
+    // The square's size is read in the same frame as Fennel: the map gives way (smaller squares) when the verdict comes up,
+    // in the frame his last value shows, and a size measured once read that frame as a place between squares.
+    const w = walker.getBoundingClientRect(), g = world.getBoundingClientRect(), side = cell?.getBoundingClientRect().width || 1;
     const s = {
-      t: Math.round(performance.now()), x: +((w.x - g.x) / first).toFixed(2), y: +((w.y - g.y) / first).toFixed(2),
+      t: Math.round(performance.now()), x: +((w.x - g.x) / side).toFixed(2), y: +((w.y - g.y) / side).toFixed(2), side: +side.toFixed(1),
       trail: world.querySelectorAll('.trail').length, picked: world.querySelectorAll('.picked').length,
       vars: [...document.querySelectorAll('.vars .var')].map((v) => v.textContent.trim().replace(/\s+/g, '=')).join(' '),
       face: walker.firstElementChild?.getAttribute('class') ?? '',
@@ -105,7 +107,7 @@ export default async (h) => {
         const { tr, shots } = await watched(item, () => answerCoding(h2, item));
         const a = analyse(tr);
         if (!a.run) return;
-        report[id].push({ item: item.id, type: item.type, ...a, frames: shots.length, span: shots.at(-1)?.at });
+        report[id].push({ item: item.id, type: item.type, ...a, frames: shots.length, span: shots.at(-1)?.at, raw: tr });
         console.log(`  ${item.id} (${item.type}): ${shots.length} frames over ${shots.at(-1)?.at ?? 0} ms; visits ${a.visits.length}; trail ends at ${a.endTrail}; jumps ${a.jumps.length}; values between squares ${a.offSquare.length}; drawing shrank ${a.shrank}`);
         for (const v of a.valueLog.slice(0, 12)) console.log(`      ${v}`);
         check(`${item.id}: Fennel never jumps more than a square between frames`, !a.jumps.length, a.jumps.slice(0, 2).join('; '));
